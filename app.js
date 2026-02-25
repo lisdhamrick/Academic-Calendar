@@ -152,6 +152,12 @@ function addBracket(dayCell, side, type, segment = "full") {
   dayCell.appendChild(markerTag);
 }
 
+function weekHasOnlyWeekendMonthDays(weekCells) {
+  const monthDays = weekCells.filter((cell) => cell.type === "day");
+  if (monthDays.length === 0) return false;
+  return monthDays.every((cell) => cell.weekday === 0 || cell.weekday === 6);
+}
+
 function renderCalendar() {
   const schoolYearLabel = document.getElementById("schoolYearLabel");
   const calendarGrid = document.getElementById("calendarGrid");
@@ -189,21 +195,45 @@ function renderCalendar() {
     const daysGrid = monthCard.querySelector(".days-grid");
     const firstWeekday = anchorDate.getDay();
     const daysInMonth = new Date(year, anchorDate.getMonth() + 1, 0).getDate();
+    const trailingDays = (7 - ((firstWeekday + daysInMonth) % 7)) % 7;
+    const monthCells = [];
 
     for (let i = 0; i < firstWeekday; i += 1) {
-      const spacer = document.createElement("li");
-      spacer.className = "day-cell spacer";
-      daysGrid.appendChild(spacer);
+      monthCells.push({ type: "spacer" });
     }
-
     for (let day = 1; day <= daysInMonth; day += 1) {
       const dayDate = new Date(year, anchorDate.getMonth(), day);
       const key = createDateKey(dayDate);
-      const dayEvents = eventLookup[key] || [];
-      const dayMarkers = markerLookup[key] || [];
+      monthCells.push({ type: "day", day, key, weekday: dayDate.getDay() });
+    }
+    for (let i = 0; i < trailingDays; i += 1) {
+      monthCells.push({ type: "spacer" });
+    }
 
+    const weeks = [];
+    for (let i = 0; i < monthCells.length; i += 7) {
+      weeks.push(monthCells.slice(i, i + 7));
+    }
+
+    if (weeks.length === 6) {
+      if (weekHasOnlyWeekendMonthDays(weeks[0])) weeks.shift();
+      if (weeks.length === 6 && weekHasOnlyWeekendMonthDays(weeks[weeks.length - 1])) weeks.pop();
+    }
+
+    weeks.flat().forEach((cell) => {
+      if (cell.type === "spacer") {
+        const spacer = document.createElement("li");
+        spacer.className = "day-cell spacer";
+        spacer.innerHTML = `<span class="day-dot" aria-hidden="true"></span>`;
+        daysGrid.appendChild(spacer);
+        return;
+      }
+
+      const dayEvents = eventLookup[cell.key] || [];
+      const dayMarkers = markerLookup[cell.key] || [];
       const dayCell = document.createElement("li");
       dayCell.className = "day-cell";
+
       if (dayEvents.length > 0) {
         dayEvents.forEach((eventType) => {
           const eventClass = CALENDAR_CONFIG.eventTypes[eventType]?.className;
@@ -214,24 +244,17 @@ function renderCalendar() {
       if (dayEvents.includes("earlyRelease")) {
         dayCell.classList.add("day-cell-er");
         dayCell.innerHTML = `<span class="day-number er-label">ER</span>`;
+        dayCell.setAttribute("aria-label", `Early Release: ${cell.day}`);
       } else {
-        dayCell.innerHTML = `<span class="day-number">${day}</span>`;
-      }
-
-      if (dayEvents.includes("earlyRelease")) {
-        dayCell.setAttribute("aria-label", `Early Release: ${day}`);
+        dayCell.innerHTML = `<span class="day-number">${cell.day}</span>`;
       }
 
       const markerState = getMarkerState(dayMarkers);
-
       ["start", "end"].forEach((side) => {
         const hasGp6 = markerState[side].gp6;
         const hasGp9 = markerState[side].gp9;
 
-        if (hasGp6 || hasGp9) {
-          dayCell.classList.add(`has-marker-${side}`);
-        }
-
+        if (hasGp6 || hasGp9) dayCell.classList.add(`has-marker-${side}`);
         if (hasGp6 && hasGp9) {
           addBracket(dayCell, side, "gp6", "upper");
           addBracket(dayCell, side, "gp9", "lower");
@@ -249,7 +272,7 @@ function renderCalendar() {
       }
 
       daysGrid.appendChild(dayCell);
-    }
+    });
 
     calendarGrid.appendChild(monthCard);
   }
