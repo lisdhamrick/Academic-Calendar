@@ -14,9 +14,8 @@
   --gp6: #2a5e8d;
   --gp9: #e1b72b;
   --staar: #4f7ea4;
-  --day-slot-w: clamp(15px, 1.5vw, 18px);
-  --day-slot-h: calc(var(--day-slot-w) * 0.647);
-  --marker-depth: calc(var(--day-slot-w) * 0.206);
+  --day-slot-h: clamp(1.05rem, 1.45vw, 1.22rem);
+  --marker-depth: clamp(0.22rem, 0.34vw, 0.34rem);
   --marker-gap: 1px;
 }
 
@@ -140,7 +139,7 @@ body {
 }
 
 .day-cell {
-  width: var(--day-slot-w);
+  width: 100%;
   height: var(--day-slot-h);
   border: 0;
   border-radius: 0;
@@ -151,7 +150,7 @@ body {
   align-items: center;
   justify-content: center;
   position: relative;
-  justify-self: center;
+  justify-self: stretch;
   overflow: hidden;
 }
 
