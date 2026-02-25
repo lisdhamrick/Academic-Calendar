@@ -14,9 +14,10 @@
   --gp6: #2a5e8d;
   --gp9: #e1b72b;
   --staar: #4f7ea4;
-  --day-slot-h: clamp(1.05rem, 1.45vw, 1.22rem);
-  --marker-depth: clamp(0.22rem, 0.34vw, 0.34rem);
+  --day-slot-h: clamp(1.22rem, 1.8vw, 1.45rem);
+  --marker-depth: clamp(0.24rem, 0.38vw, 0.4rem);
   --marker-gap: 1px;
+  --month-grid-max: 14rem;
 }
 
 *,
@@ -121,11 +122,12 @@ body {
 .weekday-row,
 .days-grid {
   list-style: none;
-  margin: 0;
+  margin: 0 auto;
   padding: 0;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 0;
+  width: min(100%, var(--month-grid-max));
 }
 
 .weekday-row {
@@ -144,7 +146,7 @@ body {
   border: 0;
   border-radius: 0;
   text-align: center;
-  font-size: clamp(0.48rem, 0.7vw, 0.56rem);
+  font-size: clamp(0.68rem, 1vw, 0.82rem);
   color: #0f2b45;
   display: flex;
   align-items: center;
@@ -198,7 +200,7 @@ body {
 
 .day-cell-er .day-number {
   font-weight: 700;
-  font-size: clamp(0.34rem, 0.52vw, 0.42rem);
+  font-size: clamp(0.46rem, 0.72vw, 0.58rem);
   letter-spacing: 0.02em;
 }
 
