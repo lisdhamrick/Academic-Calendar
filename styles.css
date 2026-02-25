@@ -1,0 +1,347 @@
+:root {
+  --bg: #f3f4f6;
+  --panel: #ffffff;
+  --ink: #12304e;
+  --ink-soft: #4b627a;
+  --brand: #1f5d96;
+  --brand-deep: #17446e;
+  --gold: #e9bf3d;
+  --line: #d7dee7;
+  --new-teacher: #63aeca;
+  --staff-dev: #f4d550;
+  --holiday: #9dcfa4;
+  --first-last: #9b7aa8;
+  --gp6: #2a5e8d;
+  --gp9: #e1b72b;
+  --staar: #4f7ea4;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Barlow", sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 12% 8%, rgba(255, 255, 255, 0.35), transparent 28%),
+    radial-gradient(circle at 85% 0%, rgba(255, 255, 255, 0.25), transparent 22%),
+    linear-gradient(165deg, #e6edf5 0%, #f4f6f9 45%, #eaf2f9 100%);
+  min-height: 100vh;
+}
+
+.calendar-app {
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 0 1.25rem 1.5rem;
+}
+
+.app-header {
+  margin-top: 1rem;
+  border-radius: 20px;
+  background:
+    linear-gradient(140deg, rgba(255, 255, 255, 0.1), transparent 45%),
+    repeating-radial-gradient(circle at center, rgba(255, 255, 255, 0.05) 0 2px, transparent 2px 20px),
+    linear-gradient(90deg, var(--brand-deep), var(--brand));
+  color: white;
+  padding: 1.3rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.district {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+.app-header h1 {
+  margin: 0.1rem 0 0;
+  font-family: "League Spartan", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: clamp(1.45rem, 2.6vw, 2.25rem);
+}
+
+.school-year {
+  margin: 0;
+  font-family: "League Spartan", sans-serif;
+  font-size: clamp(2rem, 5vw, 4rem);
+  color: #fff9e0;
+  text-shadow: 0 2px 0 #c79f28;
+}
+
+.app-layout {
+  display: grid;
+  grid-template-columns: 1fr 290px;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.calendar-grid {
+  border-radius: 16px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(190px, 1fr));
+  gap: 0.75rem;
+  padding: 0.9rem;
+}
+
+.month-card {
+  border: 1px solid #d9e1ea;
+  border-radius: 10px;
+  padding: 0.75rem;
+  background: linear-gradient(to bottom, #ffffff, #f9fbfe);
+}
+
+.month-card header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 2px solid var(--gold);
+  margin-bottom: 0.6rem;
+}
+
+.month-card h3,
+.month-card p {
+  margin: 0 0 0.35rem;
+  text-transform: uppercase;
+  font-family: "League Spartan", sans-serif;
+}
+
+.month-card h3 {
+  font-size: 1.2rem;
+}
+
+.month-card p {
+  color: var(--gold);
+  font-size: 1.2rem;
+}
+
+.weekday-row,
+.days-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0;
+}
+
+.weekday-row {
+  margin-bottom: 0.25rem;
+}
+
+.weekday-row li {
+  text-align: center;
+  font-weight: 700;
+  color: #2b587c;
+}
+
+.day-cell {
+  min-height: 1.8rem;
+  border: 0;
+  border-radius: 0;
+  text-align: center;
+  font-size: 0.92rem;
+  color: #0f2b45;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.day-number {
+  line-height: 1;
+}
+
+.day-cell.spacer {
+  visibility: hidden;
+}
+
+.event-new-teacher {
+  background: var(--new-teacher);
+}
+
+.event-teacher-pl {
+  background: var(--staff-dev);
+}
+
+.event-holiday {
+  background: var(--holiday);
+}
+
+.event-first-last {
+  border: 2px solid var(--first-last);
+}
+
+.event-early-release {
+  background: #d9d9d9;
+}
+
+.event-gp6 {
+  color: var(--gp6);
+}
+
+.event-gp9 {
+  color: var(--gp9);
+}
+
+.event-staar {
+  border: 1px dashed var(--staar);
+}
+
+.day-cell-er .day-number {
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+}
+
+.day-marker {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-54%);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.day-marker-start {
+  left: 2px;
+}
+
+.day-marker-end {
+  right: 2px;
+}
+
+.day-marker-gp6 {
+  color: var(--gp6);
+}
+
+.day-marker-gp9 {
+  color: var(--gp9);
+}
+
+.info-panel {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--panel);
+  padding: 0.85rem 1rem;
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+.info-panel h2 {
+  margin: 0;
+  text-transform: uppercase;
+  color: #1d5688;
+  border-bottom: 2px solid #ebb943;
+  padding-bottom: 0.3rem;
+  font-family: "League Spartan", sans-serif;
+}
+
+.info-panel ul {
+  list-style: none;
+  padding: 0;
+  margin: 0.55rem 0 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+#importantDates li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.7rem;
+  align-items: baseline;
+}
+
+#importantDates span {
+  color: #18334f;
+}
+
+#importantDates strong {
+  font-size: 0.9rem;
+  color: #314e68;
+}
+
+.legend {
+  margin-top: 1rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 0.8rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(235px, 1fr));
+  gap: 0.5rem 0.8rem;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: #213d58;
+  font-weight: 500;
+}
+
+.legend-swatch {
+  width: 1.85rem;
+  height: 1.15rem;
+  border-radius: 0;
+  border: 1px solid #8fa7bd;
+}
+
+.legend-bracket {
+  display: inline-flex;
+  width: 1.85rem;
+  height: 1.15rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #8fa7bd;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+@media (max-width: 1220px) {
+  .app-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .calendar-grid {
+    grid-template-columns: repeat(3, minmax(190px, 1fr));
+  }
+}
+
+@media (max-width: 920px) {
+  .app-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .calendar-grid {
+    grid-template-columns: repeat(2, minmax(180px, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .calendar-app {
+    padding-inline: 0.65rem;
+  }
+
+  .calendar-grid {
+    grid-template-columns: 1fr;
+    padding: 0.6rem;
+  }
+
+  .month-card {
+    padding: 0.65rem;
+  }
+}

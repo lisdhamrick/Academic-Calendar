@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Leander ISD Academic Calendar</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=League+Spartan:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="calendar-app">
+      <header class="app-header">
+        <div class="brand-block">
+          <p class="district">Leander ISD</p>
+          <h1>District Calendar</h1>
+        </div>
+        <p class="school-year" id="schoolYearLabel"></p>
+      </header>
+
+      <div class="app-layout">
+        <section class="calendar-grid" id="calendarGrid" aria-label="Academic calendar months"></section>
+
+        <aside class="info-panel">
+          <section>
+            <h2>Important Dates</h2>
+            <ul id="importantDates"></ul>
+          </section>
+
+          <section>
+            <h2>Contact</h2>
+            <ul>
+              <li>(512) 570-0000</li>
+              <li>leanderisd.org</li>
+              <li>instagram.com/leander_isd</li>
+              <li>facebook.com/leanderisd</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2>Start & End Times</h2>
+            <ul>
+              <li><strong>Elementary:</strong> 7:30 a.m.-2:45 p.m.</li>
+              <li><strong>Middle:</strong> 9:05 a.m.-4:20 p.m.</li>
+              <li><strong>High:</strong> 8:15 a.m.-3:35 p.m.</li>
+            </ul>
+          </section>
+        </aside>
+      </div>
+
+      <section class="legend" id="legend"></section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
