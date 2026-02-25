@@ -9,9 +9,9 @@
   --gold: #ffc000;
   --line: #d7dee7;
   --new-teacher: #63aeca;
-  --staff-dev: #ffc000;
+  --staff-dev: #ffd44c;
   --holiday: #a3d0a8;
-  --first-last: #9b7aa8;
+  --first-last: #b18fc2;
   --gp6: #005987;
   --gp9: #ffc000;
   --staar: #005987;
@@ -283,7 +283,7 @@ body {
 .day-frame-first-last {
   position: absolute;
   inset: 0;
-  border: 1px solid var(--first-last);
+  border: 2px solid var(--first-last);
   pointer-events: none;
   z-index: 4;
 }
