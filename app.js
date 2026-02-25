@@ -130,6 +130,28 @@ function buildMarkerLookup(markers) {
   }, {});
 }
 
+function getMarkerState(dayMarkers) {
+  const state = {
+    start: { gp6: false, gp9: false },
+    end: { gp6: false, gp9: false }
+  };
+
+  dayMarkers.forEach((marker) => {
+    if (!state[marker.side]) return;
+    if (marker.type === "gp6" || marker.type === "gp9") {
+      state[marker.side][marker.type] = true;
+    }
+  });
+
+  return state;
+}
+
+function addBracket(dayCell, side, type, segment = "full") {
+  const markerTag = document.createElement("span");
+  markerTag.className = `day-bracket day-bracket-${side} day-bracket-${type} day-bracket-${segment}`;
+  dayCell.appendChild(markerTag);
+}
+
 function renderCalendar() {
   const schoolYearLabel = document.getElementById("schoolYearLabel");
   const calendarGrid = document.getElementById("calendarGrid");
@@ -200,12 +222,31 @@ function renderCalendar() {
         dayCell.setAttribute("aria-label", `Early Release: ${day}`);
       }
 
-      dayMarkers.forEach((marker) => {
-        const markerTag = document.createElement("span");
-        markerTag.className = `day-marker day-marker-${marker.type} day-marker-${marker.side}`;
-        markerTag.textContent = marker.side === "start" ? "[" : "]";
-        dayCell.appendChild(markerTag);
+      const markerState = getMarkerState(dayMarkers);
+
+      ["start", "end"].forEach((side) => {
+        const hasGp6 = markerState[side].gp6;
+        const hasGp9 = markerState[side].gp9;
+
+        if (hasGp6 || hasGp9) {
+          dayCell.classList.add(`has-marker-${side}`);
+        }
+
+        if (hasGp6 && hasGp9) {
+          addBracket(dayCell, side, "gp6", "upper");
+          addBracket(dayCell, side, "gp9", "lower");
+        } else if (hasGp6) {
+          addBracket(dayCell, side, "gp6");
+        } else if (hasGp9) {
+          addBracket(dayCell, side, "gp9");
+        }
       });
+
+      if (dayEvents.includes("firstLastDay")) {
+        const frameTag = document.createElement("span");
+        frameTag.className = "day-frame-first-last";
+        dayCell.appendChild(frameTag);
+      }
 
       daysGrid.appendChild(dayCell);
     }
