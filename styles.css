@@ -26,10 +26,7 @@ body {
   margin: 0;
   font-family: "Barlow", sans-serif;
   color: var(--ink);
-  background:
-    radial-gradient(circle at 12% 8%, rgba(255, 255, 255, 0.35), transparent 28%),
-    radial-gradient(circle at 85% 0%, rgba(255, 255, 255, 0.25), transparent 22%),
-    linear-gradient(165deg, #e6edf5 0%, #f4f6f9 45%, #eaf2f9 100%);
+  background: var(--bg);
   min-height: 100vh;
 }
 
@@ -41,11 +38,7 @@ body {
 
 .app-header {
   margin-top: 1rem;
-  border-radius: 20px;
-  background:
-    linear-gradient(140deg, rgba(255, 255, 255, 0.1), transparent 45%),
-    repeating-radial-gradient(circle at center, rgba(255, 255, 255, 0.05) 0 2px, transparent 2px 20px),
-    linear-gradient(90deg, var(--brand-deep), var(--brand));
+  background: #005987;
   color: white;
   padding: 1.3rem 1.5rem;
   display: flex;
@@ -86,9 +79,7 @@ body {
 }
 
 .calendar-grid {
-  border-radius: 16px;
   background: var(--panel);
-  border: 1px solid var(--line);
   display: grid;
   grid-template-columns: repeat(4, minmax(190px, 1fr));
   gap: 0.75rem;
@@ -96,10 +87,8 @@ body {
 }
 
 .month-card {
-  border: 1px solid #d9e1ea;
-  border-radius: 10px;
   padding: 0.75rem;
-  background: linear-gradient(to bottom, #ffffff, #f9fbfe);
+  background: transparent;
 }
 
 .month-card header {
@@ -180,7 +169,7 @@ body {
 }
 
 .event-first-last {
-  border: 2px solid var(--first-last);
+  background: rgba(155, 122, 168, 0.3);
 }
 
 .event-early-release {
@@ -196,7 +185,7 @@ body {
 }
 
 .event-staar {
-  border: 1px dashed var(--staar);
+  background: rgba(79, 126, 164, 0.22);
 }
 
 .day-cell-er .day-number {
@@ -231,8 +220,6 @@ body {
 }
 
 .info-panel {
-  border: 1px solid var(--line);
-  border-radius: 16px;
   background: var(--panel);
   padding: 0.85rem 1rem;
   display: grid;
@@ -276,8 +263,6 @@ body {
 .legend {
   margin-top: 1rem;
   background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 16px;
   padding: 0.8rem;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(235px, 1fr));
@@ -296,7 +281,6 @@ body {
   width: 1.85rem;
   height: 1.15rem;
   border-radius: 0;
-  border: 1px solid #8fa7bd;
 }
 
 .legend-bracket {
@@ -305,7 +289,6 @@ body {
   height: 1.15rem;
   align-items: center;
   justify-content: center;
-  border: 1px solid #8fa7bd;
   font-weight: 700;
   letter-spacing: -0.04em;
 }
