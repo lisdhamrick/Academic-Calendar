@@ -280,14 +280,32 @@ function renderCalendar() {
   Object.values(CALENDAR_CONFIG.eventTypes).forEach((eventType) => {
     const item = document.createElement("span");
     item.className = "legend-item";
-    item.innerHTML = `<span class="legend-swatch ${eventType.className}"></span>${eventType.label}`;
+    const swatch = document.createElement("span");
+    swatch.className = `legend-swatch ${eventType.className}`;
+    if (eventType.className === "event-early-release") {
+      swatch.classList.add("legend-swatch-er");
+      swatch.textContent = "ER";
+    }
+    item.appendChild(swatch);
+    item.append(` ${eventType.label}`);
     legend.appendChild(item);
   });
 
   Object.values(CALENDAR_CONFIG.gradingMarkerTypes).forEach((markerType) => {
     const item = document.createElement("span");
     item.className = "legend-item";
-    item.innerHTML = `<span class="legend-bracket ${markerType.className}">[ ]</span>${markerType.label}`;
+    const markerCell = document.createElement("span");
+    markerCell.className = `legend-marker-cell legend-marker-${markerType.className}`;
+
+    const start = document.createElement("span");
+    start.className = "legend-marker-edge legend-marker-start";
+    const end = document.createElement("span");
+    end.className = "legend-marker-edge legend-marker-end";
+
+    markerCell.appendChild(start);
+    markerCell.appendChild(end);
+    item.appendChild(markerCell);
+    item.append(` ${markerType.label}`);
     legend.appendChild(item);
   });
 

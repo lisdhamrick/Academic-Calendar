@@ -9,13 +9,13 @@
   --gold: #ffc000;
   --line: #d7dee7;
   --new-teacher: #63aeca;
-  --staff-dev: #ffd44c;
+  --staff-dev: #ffc000;
   --holiday: #a3d0a8;
   --first-last: #b18fc2;
   --gp6: #005987;
   --gp9: #ffc000;
   --staar: #005987;
-  --day-slot-h: clamp(1.22rem, 1.8vw, 1.45rem);
+  --day-slot-h: clamp(1.34rem, 2vw, 1.6rem);
   --marker-depth: clamp(0.24rem, 0.38vw, 0.4rem);
   --marker-gap: 1px;
   --marker-stroke: 2px;
@@ -153,7 +153,7 @@ body {
   border-radius: 0;
   text-align: center;
   font-size: clamp(0.68rem, 1vw, 0.82rem);
-  color: var(--brand);
+  color: #000000;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -164,6 +164,7 @@ body {
 
 .day-number {
   line-height: 1;
+  font-weight: 500;
   position: relative;
   z-index: 2;
 }
@@ -214,9 +215,9 @@ body {
 }
 
 .day-cell-er .day-number {
-  font-weight: 700;
-  font-size: clamp(0.46rem, 0.72vw, 0.58rem);
-  letter-spacing: 0.02em;
+  font-weight: inherit;
+  font-size: inherit;
+  letter-spacing: 0;
 }
 
 .day-bracket {
@@ -337,12 +338,12 @@ body {
 }
 
 #importantDates span {
-  color: var(--brand);
+  color: #000000;
 }
 
 #importantDates strong {
   font-size: 0.9rem;
-  color: var(--brand);
+  color: #000000;
 }
 
 .legend {
@@ -358,24 +359,65 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
-  color: var(--brand);
+  color: #000000;
   font-weight: 500;
 }
 
 .legend-swatch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 1.85rem;
   height: 1.15rem;
   border-radius: 0;
 }
 
-.legend-bracket {
-  display: inline-flex;
+.legend-swatch-er {
+  font-size: inherit;
+  font-weight: 500;
+  color: #000000;
+}
+
+.legend-swatch.event-first-last {
+  background: transparent;
+  border: 2px solid var(--first-last);
+}
+
+.legend-marker-cell {
   width: 1.85rem;
   height: 1.15rem;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  letter-spacing: -0.04em;
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+}
+
+.legend-marker-event-gp6 {
+  --marker-color: var(--gp6);
+}
+
+.legend-marker-event-gp9 {
+  --marker-color: var(--gp9);
+}
+
+.legend-marker-edge {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: var(--marker-depth);
+}
+
+.legend-marker-start {
+  left: 0;
+  border-left: var(--marker-stroke) solid var(--marker-color);
+  border-top: var(--marker-stroke) solid var(--marker-color);
+  border-bottom: var(--marker-stroke) solid var(--marker-color);
+}
+
+.legend-marker-end {
+  right: 0;
+  border-right: var(--marker-stroke) solid var(--marker-color);
+  border-top: var(--marker-stroke) solid var(--marker-color);
+  border-bottom: var(--marker-stroke) solid var(--marker-color);
 }
 
 @media (max-width: 1220px) {
