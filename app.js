@@ -174,6 +174,23 @@ function sanitizeMarkers(markers) {
     .map((marker) => ({ type: marker.type, date: marker.date, side: marker.side }));
 }
 
+function markersFromRanges(gradingRanges) {
+  if (!gradingRanges || typeof gradingRanges !== "object") return [];
+  const markers = [];
+
+  ["gp6", "gp9"].forEach((type) => {
+    const ranges = Array.isArray(gradingRanges[type]) ? gradingRanges[type] : [];
+    ranges.forEach((range) => {
+      if (!range || typeof range.start !== "string" || typeof range.end !== "string") return;
+      if (!range.start || !range.end) return;
+      markers.push({ type, date: range.start, side: "start" });
+      markers.push({ type, date: range.end, side: "end" });
+    });
+  });
+
+  return markers;
+}
+
 function sanitizeImportantDates(entries) {
   return entries
     .filter(
@@ -210,7 +227,9 @@ function applyControlData(data) {
       .map((event) => ({ date: event.date, type: event.type }));
   }
 
-  if (Array.isArray(data.gradingMarkers)) {
+  if (data.gradingRanges && typeof data.gradingRanges === "object") {
+    CALENDAR_CONFIG.gradingMarkers = sanitizeMarkers(markersFromRanges(data.gradingRanges));
+  } else if (Array.isArray(data.gradingMarkers)) {
     CALENDAR_CONFIG.gradingMarkers = sanitizeMarkers(data.gradingMarkers);
   }
 
