@@ -1,8 +1,104 @@
+const STORAGE_KEY = "academicCalendarControlsV1";
+
+const DEFAULT_EVENT_RULES = [
+  { type: "newTeacherTraining", start: "2026-08-03", end: "2026-08-03", weekdaysOnly: false },
+  {
+    type: "teacherProfessionalLearning",
+    start: "2026-08-03",
+    end: "2026-08-11",
+    weekdaysOnly: true
+  },
+  { type: "firstLastDay", start: "2026-08-12", end: "2026-08-12", weekdaysOnly: false },
+  { type: "studentStaffHoliday", start: "2026-09-07", end: "2026-09-07", weekdaysOnly: false },
+  {
+    type: "teacherProfessionalLearning",
+    start: "2026-09-21",
+    end: "2026-09-21",
+    weekdaysOnly: false
+  },
+  {
+    type: "teacherProfessionalLearning",
+    start: "2026-10-09",
+    end: "2026-10-09",
+    weekdaysOnly: false
+  },
+  { type: "studentStaffHoliday", start: "2026-10-12", end: "2026-10-13", weekdaysOnly: false },
+  {
+    type: "teacherProfessionalLearning",
+    start: "2026-11-02",
+    end: "2026-11-03",
+    weekdaysOnly: true
+  },
+  { type: "studentStaffHoliday", start: "2026-11-23", end: "2026-11-27", weekdaysOnly: true },
+  { type: "earlyRelease", start: "2026-12-18", end: "2026-12-18", weekdaysOnly: false },
+  { type: "studentStaffHoliday", start: "2026-12-21", end: "2026-12-31", weekdaysOnly: true },
+  { type: "studentStaffHoliday", start: "2027-01-01", end: "2027-01-01", weekdaysOnly: false },
+  {
+    type: "teacherProfessionalLearning",
+    start: "2027-01-04",
+    end: "2027-01-04",
+    weekdaysOnly: false
+  },
+  { type: "studentStaffHoliday", start: "2027-01-18", end: "2027-01-18", weekdaysOnly: false },
+  {
+    type: "teacherProfessionalLearning",
+    start: "2027-02-12",
+    end: "2027-02-12",
+    weekdaysOnly: false
+  },
+  { type: "studentStaffHoliday", start: "2027-02-15", end: "2027-02-16", weekdaysOnly: true },
+  { type: "studentStaffHoliday", start: "2027-03-15", end: "2027-03-19", weekdaysOnly: true },
+  { type: "studentStaffHoliday", start: "2027-03-26", end: "2027-03-26", weekdaysOnly: false },
+  {
+    type: "teacherProfessionalLearning",
+    start: "2027-03-29",
+    end: "2027-03-29",
+    weekdaysOnly: false
+  },
+  {
+    type: "teacherProfessionalLearning",
+    start: "2027-04-26",
+    end: "2027-04-26",
+    weekdaysOnly: false
+  },
+  { type: "earlyRelease", start: "2027-05-27", end: "2027-05-27", weekdaysOnly: false },
+  { type: "firstLastDay", start: "2027-05-27", end: "2027-05-27", weekdaysOnly: false }
+];
+
+const DEFAULT_GRADING_MARKERS = [
+  { type: "gp6", date: "2026-09-28", side: "start" },
+  { type: "gp6", date: "2026-11-06", side: "end" },
+  { type: "gp6", date: "2026-11-09", side: "start" },
+  { type: "gp6", date: "2027-01-29", side: "end" },
+  { type: "gp6", date: "2027-02-01", side: "start" },
+  { type: "gp6", date: "2027-03-26", side: "end" },
+  { type: "gp6", date: "2027-03-29", side: "start" },
+  { type: "gp6", date: "2027-05-27", side: "end" },
+  { type: "gp9", date: "2026-08-12", side: "start" },
+  { type: "gp9", date: "2026-10-16", side: "end" },
+  { type: "gp9", date: "2026-10-19", side: "start" },
+  { type: "gp9", date: "2027-01-08", side: "end" },
+  { type: "gp9", date: "2027-01-11", side: "start" },
+  { type: "gp9", date: "2027-03-19", side: "end" },
+  { type: "gp9", date: "2027-03-22", side: "start" },
+  { type: "gp9", date: "2027-05-27", side: "end" }
+];
+
+const DEFAULT_IMPORTANT_DATES = [
+  { label: "First Day of School", dateText: "Aug. 12, 2026" },
+  { label: "Fall Break (Student / Staff Holiday)", dateText: "Nov. 23-27, 2026" },
+  { label: "Early Release", dateText: "Dec. 18, 2026" },
+  { label: "Winter Break (Student / Staff Holiday)", dateText: "Dec. 21, 2026-Jan. 1, 2027" },
+  { label: "Spring Break (Student / Staff Holiday)", dateText: "Mar. 15-19, 2027" },
+  { label: "Proposed STAAR Testing", dateText: "Apr. 6-May 1, 2027" },
+  { label: "Last Day of School / Early Release", dateText: "May 27, 2027" }
+];
+
 const CALENDAR_CONFIG = {
   districtName: "Leander ISD",
   schoolYearLabel: "2026-2027",
   startYear: 2026,
-  startMonth: 6, // July (0-indexed)
+  startMonth: 6,
   monthsToRender: 12,
   eventTypes: {
     newTeacherTraining: { label: "New Teacher Training", className: "event-new-teacher" },
@@ -12,7 +108,8 @@ const CALENDAR_CONFIG = {
     },
     studentStaffHoliday: { label: "Student / Staff Holiday", className: "event-holiday" },
     earlyRelease: { label: "Early Release", className: "event-early-release" },
-    firstLastDay: { label: "First / Last Day of School", className: "event-first-last" }
+    firstLastDay: { label: "First / Last Day of School", className: "event-first-last" },
+    proposedStaar: { label: "Proposed STAAR Testing", className: "event-staar" }
   },
   gradingMarkerTypes: {
     gp6: { label: "6-Week Grading Periods", className: "event-gp6" },
@@ -20,15 +117,7 @@ const CALENDAR_CONFIG = {
   },
   events: [],
   gradingMarkers: [],
-  importantDates: [
-    { label: "First Day of School", dateText: "Aug. 12, 2026" },
-    { label: "Fall Break (Student / Staff Holiday)", dateText: "Nov. 23-27, 2026" },
-    { label: "Early Release", dateText: "Dec. 18, 2026" },
-    { label: "Winter Break (Student / Staff Holiday)", dateText: "Dec. 21, 2026-Jan. 1, 2027" },
-    { label: "Spring Break (Student / Staff Holiday)", dateText: "Mar. 15-19, 2027" },
-    { label: "Proposed STAAR Testing", dateText: "Apr. 6-May 1, 2027" },
-    { label: "Last Day of School / Early Release", dateText: "May 27, 2027" }
-  ]
+  importantDates: DEFAULT_IMPORTANT_DATES.map((entry) => ({ ...entry }))
 };
 
 function createDateKey(date) {
@@ -50,68 +139,102 @@ function enumerateDateRange(startISO, endISO) {
   return dates;
 }
 
-function addEventRange(type, startISO, endISO = startISO) {
-  const dateKeys = enumerateDateRange(startISO, endISO);
-  dateKeys.forEach((dateKey) => CALENDAR_CONFIG.events.push({ date: dateKey, type }));
-}
+function expandEventRules(rules) {
+  const events = [];
 
-function addWeekdayEventRange(type, startISO, endISO = startISO) {
-  const dateKeys = enumerateDateRange(startISO, endISO);
-  dateKeys.forEach((dateKey) => {
-    const date = parseISODate(dateKey);
-    const day = date.getDay();
-    if (day !== 0 && day !== 6) {
-      CALENDAR_CONFIG.events.push({ date: dateKey, type });
-    }
+  rules.forEach((rule) => {
+    if (!rule || typeof rule !== "object") return;
+    const { type, start, end, weekdaysOnly } = rule;
+    if (!type || !start) return;
+    const finalEnd = end || start;
+    if (!CALENDAR_CONFIG.eventTypes[type]) return;
+
+    const dateKeys = enumerateDateRange(start, finalEnd);
+    dateKeys.forEach((dateKey) => {
+      if (weekdaysOnly) {
+        const day = parseISODate(dateKey).getDay();
+        if (day === 0 || day === 6) return;
+      }
+      events.push({ date: dateKey, type });
+    });
   });
+
+  return events;
 }
 
-function addGradingMarker(type, dateISO, side) {
-  CALENDAR_CONFIG.gradingMarkers.push({ type, date: dateISO, side });
+function sanitizeMarkers(markers) {
+  return markers
+    .filter(
+      (marker) =>
+        marker &&
+        (marker.type === "gp6" || marker.type === "gp9") &&
+        typeof marker.date === "string" &&
+        (marker.side === "start" || marker.side === "end")
+    )
+    .map((marker) => ({ type: marker.type, date: marker.date, side: marker.side }));
 }
 
-function seedDefaultEvents() {
-  addEventRange("newTeacherTraining", "2026-08-03", "2026-08-03");
-  addWeekdayEventRange("teacherProfessionalLearning", "2026-08-03", "2026-08-11");
-  addEventRange("firstLastDay", "2026-08-12");
-  addEventRange("studentStaffHoliday", "2026-09-07");
-  addEventRange("teacherProfessionalLearning", "2026-09-21");
-  addEventRange("teacherProfessionalLearning", "2026-10-09");
-  addEventRange("studentStaffHoliday", "2026-10-12", "2026-10-13");
-  addWeekdayEventRange("teacherProfessionalLearning", "2026-11-02", "2026-11-03");
-  addWeekdayEventRange("studentStaffHoliday", "2026-11-23", "2026-11-27");
-  addEventRange("earlyRelease", "2026-12-18");
-  addWeekdayEventRange("studentStaffHoliday", "2026-12-21", "2026-12-31");
-  addEventRange("studentStaffHoliday", "2027-01-01");
-  addEventRange("teacherProfessionalLearning", "2027-01-04");
-  addEventRange("studentStaffHoliday", "2027-01-18");
-  addEventRange("teacherProfessionalLearning", "2027-02-12");
-  addWeekdayEventRange("studentStaffHoliday", "2027-02-15", "2027-02-16");
-  addWeekdayEventRange("studentStaffHoliday", "2027-03-15", "2027-03-19");
-  addEventRange("studentStaffHoliday", "2027-03-26");
-  addEventRange("teacherProfessionalLearning", "2027-03-29");
-  addEventRange("teacherProfessionalLearning", "2027-04-26");
-  addEventRange("earlyRelease", "2027-05-27");
-  addEventRange("firstLastDay", "2027-05-27");
+function sanitizeImportantDates(entries) {
+  return entries
+    .filter(
+      (entry) =>
+        entry && typeof entry.label === "string" && entry.label && typeof entry.dateText === "string"
+    )
+    .map((entry) => ({ label: entry.label, dateText: entry.dateText }));
+}
 
-  // These are editable boundary markers used for the bracket-style grading period notation.
-  addGradingMarker("gp6", "2026-09-28", "start");
-  addGradingMarker("gp6", "2026-11-06", "end");
-  addGradingMarker("gp6", "2026-11-09", "start");
-  addGradingMarker("gp6", "2027-01-29", "end");
-  addGradingMarker("gp6", "2027-02-01", "start");
-  addGradingMarker("gp6", "2027-03-26", "end");
-  addGradingMarker("gp6", "2027-03-29", "start");
-  addGradingMarker("gp6", "2027-05-27", "end");
+function applyControlData(data) {
+  if (!data || typeof data !== "object") return;
 
-  addGradingMarker("gp9", "2026-08-12", "start");
-  addGradingMarker("gp9", "2026-10-16", "end");
-  addGradingMarker("gp9", "2026-10-19", "start");
-  addGradingMarker("gp9", "2027-01-08", "end");
-  addGradingMarker("gp9", "2027-01-11", "start");
-  addGradingMarker("gp9", "2027-03-19", "end");
-  addGradingMarker("gp9", "2027-03-22", "start");
-  addGradingMarker("gp9", "2027-05-27", "end");
+  if (typeof data.schoolYearLabel === "string" && data.schoolYearLabel.trim()) {
+    CALENDAR_CONFIG.schoolYearLabel = data.schoolYearLabel.trim();
+  }
+
+  if (Number.isInteger(data.startYear)) {
+    CALENDAR_CONFIG.startYear = data.startYear;
+  }
+
+  if (Number.isInteger(data.startMonth) && data.startMonth >= 0 && data.startMonth <= 11) {
+    CALENDAR_CONFIG.startMonth = data.startMonth;
+  }
+
+  if (Number.isInteger(data.monthsToRender) && data.monthsToRender >= 1 && data.monthsToRender <= 24) {
+    CALENDAR_CONFIG.monthsToRender = data.monthsToRender;
+  }
+
+  if (Array.isArray(data.eventRules)) {
+    CALENDAR_CONFIG.events = expandEventRules(data.eventRules);
+  } else if (Array.isArray(data.events)) {
+    CALENDAR_CONFIG.events = data.events
+      .filter((event) => event && typeof event.date === "string" && CALENDAR_CONFIG.eventTypes[event.type])
+      .map((event) => ({ date: event.date, type: event.type }));
+  }
+
+  if (Array.isArray(data.gradingMarkers)) {
+    CALENDAR_CONFIG.gradingMarkers = sanitizeMarkers(data.gradingMarkers);
+  }
+
+  if (Array.isArray(data.importantDates)) {
+    const cleaned = sanitizeImportantDates(data.importantDates);
+    if (cleaned.length > 0) {
+      CALENDAR_CONFIG.importantDates = cleaned;
+    }
+  }
+}
+
+function loadSavedControls() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function seedDefaultData() {
+  CALENDAR_CONFIG.events = expandEventRules(DEFAULT_EVENT_RULES);
+  CALENDAR_CONFIG.gradingMarkers = DEFAULT_GRADING_MARKERS.map((marker) => ({ ...marker }));
 }
 
 function buildEventLookup(events) {
@@ -201,11 +324,13 @@ function renderCalendar() {
     for (let i = 0; i < firstWeekday; i += 1) {
       monthCells.push({ type: "spacer" });
     }
+
     for (let day = 1; day <= daysInMonth; day += 1) {
       const dayDate = new Date(year, anchorDate.getMonth(), day);
       const key = createDateKey(dayDate);
       monthCells.push({ type: "day", day, key, weekday: dayDate.getDay() });
     }
+
     for (let i = 0; i < trailingDays; i += 1) {
       monthCells.push({ type: "spacer" });
     }
@@ -224,7 +349,7 @@ function renderCalendar() {
       if (cell.type === "spacer") {
         const spacer = document.createElement("li");
         spacer.className = "day-cell spacer";
-        spacer.innerHTML = `<span class="day-dot" aria-hidden="true"></span>`;
+        spacer.innerHTML = '<span class="day-dot" aria-hidden="true"></span>';
         daysGrid.appendChild(spacer);
         return;
       }
@@ -243,7 +368,7 @@ function renderCalendar() {
 
       if (dayEvents.includes("earlyRelease")) {
         dayCell.classList.add("day-cell-er");
-        dayCell.innerHTML = `<span class="day-number er-label">ER</span>`;
+        dayCell.innerHTML = '<span class="day-number er-label">ER</span>';
         dayCell.setAttribute("aria-label", `Early Release: ${cell.day}`);
       } else {
         dayCell.innerHTML = `<span class="day-number">${cell.day}</span>`;
@@ -316,5 +441,6 @@ function renderCalendar() {
   });
 }
 
-seedDefaultEvents();
+seedDefaultData();
+applyControlData(loadSavedControls());
 renderCalendar();

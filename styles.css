@@ -81,6 +81,25 @@ body {
   text-shadow: none;
 }
 
+.header-controls {
+  display: grid;
+  justify-items: end;
+  gap: 0.2rem;
+}
+
+.header-admin-link {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.header-admin-link:hover {
+  text-decoration: underline;
+}
+
 .app-layout {
   display: grid;
   grid-template-columns: 1fr 290px;
@@ -443,6 +462,10 @@ body {
 
   .calendar-grid {
     grid-template-columns: repeat(2, minmax(180px, 1fr));
+  }
+
+  .header-controls {
+    justify-items: start;
   }
 }
 
