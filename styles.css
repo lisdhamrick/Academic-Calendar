@@ -9,7 +9,7 @@
   --gold: #ffc000;
   --line: #d7dee7;
   --new-teacher: #63aeca;
-  --staff-dev: #ffc000;
+  --staff-dev: #ffd44c;
   --holiday: #a3d0a8;
   --first-last: #b18fc2;
   --gp6: #005987;
@@ -174,8 +174,8 @@ body {
 }
 
 .day-dot {
-  width: 0.27rem;
-  height: 0.27rem;
+  width: 0.4rem;
+  height: 0.4rem;
   border-radius: 50%;
   background: transparent;
   border: 1px solid #b8c1ca;
