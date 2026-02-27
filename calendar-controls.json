@@ -4,50 +4,172 @@
   "startMonth": 6,
   "monthsToRender": 12,
   "eventRules": [
-    { "type": "newTeacherTraining", "start": "2026-08-03", "end": "2026-08-03", "weekdaysOnly": true },
-    { "type": "teacherProfessionalLearning", "start": "2026-08-03", "end": "2026-08-11", "weekdaysOnly": true },
-    { "type": "firstLastDay", "start": "2026-08-12", "end": "2026-08-12", "weekdaysOnly": true },
-    { "type": "studentStaffHoliday", "start": "2026-09-07", "end": "2026-09-07", "weekdaysOnly": true },
-    { "type": "teacherProfessionalLearning", "start": "2026-09-21", "end": "2026-09-21", "weekdaysOnly": true },
-    { "type": "teacherProfessionalLearning", "start": "2026-10-09", "end": "2026-10-09", "weekdaysOnly": true },
-    { "type": "studentStaffHoliday", "start": "2026-10-12", "end": "2026-10-13", "weekdaysOnly": true },
-    { "type": "teacherProfessionalLearning", "start": "2026-11-02", "end": "2026-11-03", "weekdaysOnly": true },
-    { "type": "studentStaffHoliday", "start": "2026-11-23", "end": "2026-11-27", "weekdaysOnly": true },
-    { "type": "earlyRelease", "start": "2026-12-18", "end": "2026-12-18", "weekdaysOnly": true },
-    { "type": "studentStaffHoliday", "start": "2026-12-21", "end": "2026-12-31", "weekdaysOnly": true },
-    { "type": "studentStaffHoliday", "start": "2027-01-01", "end": "2027-01-01", "weekdaysOnly": true },
-    { "type": "teacherProfessionalLearning", "start": "2027-01-04", "end": "2027-01-04", "weekdaysOnly": true },
-    { "type": "studentStaffHoliday", "start": "2027-01-18", "end": "2027-01-18", "weekdaysOnly": true },
-    { "type": "teacherProfessionalLearning", "start": "2027-02-12", "end": "2027-02-12", "weekdaysOnly": true },
-    { "type": "studentStaffHoliday", "start": "2027-02-15", "end": "2027-02-16", "weekdaysOnly": true },
-    { "type": "studentStaffHoliday", "start": "2027-03-15", "end": "2027-03-19", "weekdaysOnly": true },
-    { "type": "studentStaffHoliday", "start": "2027-03-26", "end": "2027-03-26", "weekdaysOnly": true },
-    { "type": "teacherProfessionalLearning", "start": "2027-03-29", "end": "2027-03-29", "weekdaysOnly": true },
-    { "type": "teacherProfessionalLearning", "start": "2027-04-26", "end": "2027-04-26", "weekdaysOnly": true },
-    { "type": "earlyRelease", "start": "2027-05-27", "end": "2027-05-27", "weekdaysOnly": true },
-    { "type": "firstLastDay", "start": "2027-05-27", "end": "2027-05-27", "weekdaysOnly": true }
+    {
+      "type": "newTeacherTraining",
+      "start": "2026-08-03",
+      "end": "2026-08-03",
+      "weekdaysOnly": true
+    },
+    {
+      "type": "teacherProfessionalLearning",
+      "start": "2026-08-03",
+      "end": "2026-08-11",
+      "weekdaysOnly": true
+    },
+    {
+      "type": "teacherProfessionalLearning",
+      "start": "2026-09-21",
+      "end": "2026-09-21",
+      "weekdaysOnly": true
+    },
+    {
+      "type": "teacherProfessionalLearning",
+      "start": "2026-10-09",
+      "end": "2026-10-09",
+      "weekdaysOnly": true
+    },
+    {
+      "type": "teacherProfessionalLearning",
+      "start": "2026-11-02",
+      "end": "2026-11-03",
+      "weekdaysOnly": true
+    },
+    {
+      "type": "teacherProfessionalLearning",
+      "start": "2027-01-04",
+      "end": "2027-01-04",
+      "weekdaysOnly": true
+    },
+    {
+      "type": "teacherProfessionalLearning",
+      "start": "2027-02-12",
+      "end": "2027-02-12",
+      "weekdaysOnly": true
+    },
+    {
+      "type": "teacherProfessionalLearning",
+      "start": "2027-03-29",
+      "end": "2027-03-29",
+      "weekdaysOnly": true
+    },
+    {
+      "type": "teacherProfessionalLearning",
+      "start": "2027-04-26",
+      "end": "2027-04-26",
+      "weekdaysOnly": true
+    },
+    {
+      "type": "studentStaffHoliday",
+      "start": "2026-09-07",
+      "end": "2026-09-07",
+      "weekdaysOnly": true
+    },
+    {
+      "type": "studentStaffHoliday",
+      "start": "2026-10-12",
+      "end": "2026-10-13",
+      "weekdaysOnly": true
+    },
+    {
+      "type": "studentStaffHoliday",
+      "start": "2026-11-23",
+      "end": "2026-11-27",
+      "weekdaysOnly": true
+    },
+    {
+      "type": "studentStaffHoliday",
+      "start": "2026-12-21",
+      "end": "2026-12-31",
+      "weekdaysOnly": true
+    },
+    {
+      "type": "studentStaffHoliday",
+      "start": "2027-01-01",
+      "end": "2027-01-01",
+      "weekdaysOnly": true
+    },
+    {
+      "type": "studentStaffHoliday",
+      "start": "2027-01-18",
+      "end": "2027-01-18",
+      "weekdaysOnly": true
+    },
+    {
+      "type": "studentStaffHoliday",
+      "start": "2027-02-15",
+      "end": "2027-02-16",
+      "weekdaysOnly": true
+    },
+    {
+      "type": "studentStaffHoliday",
+      "start": "2027-03-15",
+      "end": "2027-03-19",
+      "weekdaysOnly": true
+    },
+    {
+      "type": "studentStaffHoliday",
+      "start": "2027-03-26",
+      "end": "2027-03-26",
+      "weekdaysOnly": true
+    },
+    {
+      "type": "earlyRelease",
+      "start": "2026-12-18",
+      "end": "2026-12-18",
+      "weekdaysOnly": true
+    },
+    {
+      "type": "earlyRelease",
+      "start": "2027-05-27",
+      "end": "2027-05-27",
+      "weekdaysOnly": true
+    },
+    {
+      "type": "firstLastDay",
+      "start": "2026-08-12",
+      "end": "2026-08-12",
+      "weekdaysOnly": true
+    },
+    {
+      "type": "firstLastDay",
+      "start": "2027-05-27",
+      "end": "2027-05-27",
+      "weekdaysOnly": true
+    }
   ],
   "gradingRanges": {
-    "gp6": [
-      { "start": "2026-09-28", "end": "2026-11-06" },
-      { "start": "2026-11-09", "end": "2027-01-29" },
-      { "start": "2027-02-01", "end": "2027-03-26" },
-      { "start": "2027-03-29", "end": "2027-05-27" }
-    ],
-    "gp9": [
-      { "start": "2026-08-12", "end": "2026-10-16" },
-      { "start": "2026-10-19", "end": "2027-01-08" },
-      { "start": "2027-01-11", "end": "2027-03-19" },
-      { "start": "2027-03-22", "end": "2027-05-27" }
-    ]
+    "gp6": [],
+    "gp9": []
   },
+  "gradingMarkers": [],
   "importantDates": [
-    { "label": "First Day of School", "dateText": "Aug. 12, 2026" },
-    { "label": "Fall Break (Student / Staff Holiday)", "dateText": "Nov. 23-27, 2026" },
-    { "label": "Early Release", "dateText": "Dec. 18, 2026" },
-    { "label": "Winter Break (Student / Staff Holiday)", "dateText": "Dec. 21, 2026-Jan. 1, 2027" },
-    { "label": "Spring Break (Student / Staff Holiday)", "dateText": "Mar. 15-19, 2027" },
-    { "label": "Proposed STAAR Testing", "dateText": "Apr. 6-May 1, 2027" },
-    { "label": "Last Day of School / Early Release", "dateText": "May 27, 2027" }
+    {
+      "label": "First Day of School",
+      "dateText": "Aug. 12, 2026"
+    },
+    {
+      "label": "Fall Break (Student / Staff Holiday)",
+      "dateText": "Nov. 23-27, 2026"
+    },
+    {
+      "label": "Early Release",
+      "dateText": "Dec. 18, 2026"
+    },
+    {
+      "label": "Winter Break (Student / Staff Holiday)",
+      "dateText": "Dec. 21, 2026-Jan. 1, 2027"
+    },
+    {
+      "label": "Spring Break (Student / Staff Holiday)",
+      "dateText": "Mar. 15-19, 2027"
+    },
+    {
+      "label": "Proposed STAAR Testing",
+      "dateText": "Apr. 6-May 1, 2027"
+    },
+    {
+      "label": "Last Day of School / Early Release",
+      "dateText": "May 27, 2027"
+    }
   ]
 }
