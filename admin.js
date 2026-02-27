@@ -1,4 +1,5 @@
 const CONTROLS_URL = window.ACADEMIC_CALENDAR_CONTROLS_URL || "./calendar-controls.json";
+const SETTINGS_KEY = "academicCalendarGithubSettingsV1";
 
 const MONTHS = [
   "January",
@@ -29,27 +30,15 @@ const GRADING_META = {
   gp9: { label: "9-Week Grading Periods", color: "#ffc000" }
 };
 
-function defaultControls() {
-  return {
-    schoolYearLabel: "",
-    startYear: 2026,
-    startMonth: 6,
-    monthsToRender: 12,
-    eventRules: [],
-    gradingRanges: { gp6: [], gp9: [] },
-    importantDates: []
-  };
-}
-
-function deepClone(value) {
-  return JSON.parse(JSON.stringify(value));
-}
-
 function createEmptyEventGroups() {
   return Object.keys(EVENT_META).reduce((acc, key) => {
     acc[key] = [];
     return acc;
   }, {});
+}
+
+function deepClone(value) {
+  return JSON.parse(JSON.stringify(value));
 }
 
 function groupEventRules(eventRules) {
@@ -94,10 +83,146 @@ function markersToRanges(markers, type) {
   return ranges;
 }
 
+function rangesToMarkers(gradingGroups) {
+  const markers = [];
+  ["gp6", "gp9"].forEach((type) => {
+    (gradingGroups[type] || []).forEach((range) => {
+      if (!range.start || !range.end) return;
+      markers.push({ type, date: range.start, side: "start" });
+      markers.push({ type, date: range.end, side: "end" });
+    });
+  });
+  return markers;
+}
+
+function flattenEventRules(eventGroups) {
+  return Object.entries(eventGroups).flatMap(([type, ranges]) =>
+    ranges
+      .filter((range) => range.start)
+      .map((range) => ({
+        type,
+        start: range.start,
+        end: range.end || range.start,
+        weekdaysOnly: true
+      }))
+  );
+}
+
+function loadGithubSettings() {
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    if (!raw) {
+      return {
+        owner: "lisdhamrick",
+        repo: "Academic-Calendar",
+        branch: "main",
+        path: "calendar-controls.json",
+        token: ""
+      };
+    }
+    const saved = JSON.parse(raw);
+    return {
+      owner: saved.owner || "lisdhamrick",
+      repo: saved.repo || "Academic-Calendar",
+      branch: saved.branch || "main",
+      path: saved.path || "calendar-controls.json",
+      token: saved.token || ""
+    };
+  } catch {
+    return {
+      owner: "lisdhamrick",
+      repo: "Academic-Calendar",
+      branch: "main",
+      path: "calendar-controls.json",
+      token: ""
+    };
+  }
+}
+
+function saveGithubSettings(settings) {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+}
+
+function base64EncodeUtf8(text) {
+  const bytes = new TextEncoder().encode(text);
+  let binary = "";
+  bytes.forEach((b) => {
+    binary += String.fromCharCode(b);
+  });
+  return btoa(binary);
+}
+
+async function getCurrentFileSha(settings) {
+  const url = `https://api.github.com/repos/${encodeURIComponent(settings.owner)}/${encodeURIComponent(
+    settings.repo
+  )}/contents/${settings.path}?ref=${encodeURIComponent(settings.branch)}`;
+
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${settings.token}`,
+      Accept: "application/vnd.github+json"
+    }
+  });
+
+  if (response.status === 404) return null;
+
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(`GitHub read failed (${response.status}): ${err}`);
+  }
+
+  const data = await response.json();
+  return data.sha || null;
+}
+
+async function saveControlsToGithub(settings, payload) {
+  const sha = await getCurrentFileSha(settings);
+  const url = `https://api.github.com/repos/${encodeURIComponent(settings.owner)}/${encodeURIComponent(
+    settings.repo
+  )}/contents/${settings.path}`;
+
+  const content = `${JSON.stringify(payload, null, 2)}\n`;
+  const body = {
+    message: `Update calendar controls ${new Date().toISOString()}`,
+    content: base64EncodeUtf8(content),
+    branch: settings.branch
+  };
+
+  if (sha) body.sha = sha;
+
+  const response = await fetch(url, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${settings.token}`,
+      Accept: "application/vnd.github+json",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(body)
+  });
+
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(`GitHub save failed (${response.status}): ${err}`);
+  }
+
+  return response.json();
+}
+
 async function fetchSharedControls() {
   try {
     const response = await fetch(`${CONTROLS_URL}?v=${Date.now()}`, { cache: "no-store" });
-    if (!response.ok) return defaultControls();
+    if (!response.ok) {
+      return {
+        schoolYearLabel: "",
+        startYear: 2026,
+        startMonth: 6,
+        monthsToRender: 12,
+        eventGroups: createEmptyEventGroups(),
+        gradingGroups: { gp6: [], gp9: [] },
+        importantDates: []
+      };
+    }
+
     const data = await response.json();
     return {
       schoolYearLabel: data.schoolYearLabel || "",
@@ -117,23 +242,15 @@ async function fetchSharedControls() {
     };
   } catch {
     return {
-      ...defaultControls(),
+      schoolYearLabel: "",
+      startYear: 2026,
+      startMonth: 6,
+      monthsToRender: 12,
       eventGroups: createEmptyEventGroups(),
-      gradingGroups: { gp6: [], gp9: [] }
+      gradingGroups: { gp6: [], gp9: [] },
+      importantDates: []
     };
   }
-}
-
-function rangesToMarkers(gradingGroups) {
-  const markers = [];
-  ["gp6", "gp9"].forEach((type) => {
-    (gradingGroups[type] || []).forEach((range) => {
-      if (!range.start || !range.end) return;
-      markers.push({ type, date: range.start, side: "start" });
-      markers.push({ type, date: range.end, side: "end" });
-    });
-  });
-  return markers;
 }
 
 const state = {
@@ -146,6 +263,8 @@ const state = {
   importantDates: []
 };
 
+const githubSettings = loadGithubSettings();
+
 const schoolYearLabelInput = document.getElementById("schoolYearLabel");
 const startYearInput = document.getElementById("startYear");
 const startMonthSelect = document.getElementById("startMonth");
@@ -155,6 +274,12 @@ const gradingGroupsContainer = document.getElementById("gradingGroups");
 const importantDatesBody = document.getElementById("importantDatesBody");
 const statusLine = document.getElementById("statusLine");
 const saveButton = document.getElementById("saveControls");
+
+const repoOwnerInput = document.getElementById("repoOwner");
+const repoNameInput = document.getElementById("repoName");
+const repoBranchInput = document.getElementById("repoBranch");
+const repoPathInput = document.getElementById("repoPath");
+const githubTokenInput = document.getElementById("githubToken");
 
 let statusTimer = null;
 let isDirty = false;
@@ -176,14 +301,13 @@ function setStatus(message, persist = false) {
     statusTimer = setTimeout(() => {
       statusLine.textContent = "";
       statusTimer = null;
-    }, 2500);
+    }, 3000);
   }
 }
 
 function markDirty() {
   if (!isDirty) {
     isDirty = true;
-    saveButton.textContent = "Save Controls JSON";
   }
   setStatus("");
 }
@@ -402,21 +526,8 @@ function renderAll() {
   renderImportantDates();
 }
 
-function flattenEventRules(eventGroups) {
-  return Object.entries(eventGroups).flatMap(([type, ranges]) =>
-    ranges
-      .filter((range) => range.start)
-      .map((range) => ({
-        type,
-        start: range.start,
-        end: range.end || range.start,
-        weekdaysOnly: true
-      }))
-  );
-}
-
 function collectForm() {
-  const payload = {
+  return {
     schoolYearLabel: schoolYearLabelInput.value.trim(),
     startYear: Number(startYearInput.value),
     startMonth: Number(startMonthSelect.value),
@@ -429,19 +540,26 @@ function collectForm() {
     gradingMarkers: rangesToMarkers(state.gradingGroups),
     importantDates: state.importantDates.filter((entry) => entry.label && entry.dateText)
   };
-  return payload;
 }
 
-function downloadControlsJson(payload) {
-  const blob = new Blob([`${JSON.stringify(payload, null, 2)}\n`], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "calendar-controls.json";
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
+function bindGithubSettings() {
+  repoOwnerInput.value = githubSettings.owner;
+  repoNameInput.value = githubSettings.repo;
+  repoBranchInput.value = githubSettings.branch;
+  repoPathInput.value = githubSettings.path;
+  githubTokenInput.value = githubSettings.token;
+
+  [repoOwnerInput, repoNameInput, repoBranchInput, repoPathInput, githubTokenInput].forEach((input) => {
+    input.addEventListener("input", () => {
+      githubSettings.owner = repoOwnerInput.value.trim();
+      githubSettings.repo = repoNameInput.value.trim();
+      githubSettings.branch = repoBranchInput.value.trim();
+      githubSettings.path = repoPathInput.value.trim();
+      githubSettings.token = githubTokenInput.value.trim();
+      saveGithubSettings(githubSettings);
+      setStatus("");
+    });
+  });
 }
 
 schoolYearLabelInput.addEventListener("input", markDirty);
@@ -456,15 +574,37 @@ document.getElementById("addImportantDate").addEventListener("click", () => {
 });
 
 document.getElementById("saveControls").addEventListener("click", async () => {
+  githubSettings.owner = repoOwnerInput.value.trim();
+  githubSettings.repo = repoNameInput.value.trim();
+  githubSettings.branch = repoBranchInput.value.trim();
+  githubSettings.path = repoPathInput.value.trim();
+  githubSettings.token = githubTokenInput.value.trim();
+  saveGithubSettings(githubSettings);
+
+  if (!githubSettings.owner || !githubSettings.repo || !githubSettings.branch || !githubSettings.path) {
+    setStatus("Complete Repo Owner, Repo Name, Branch, and Controls File Path.", true);
+    return;
+  }
+
+  if (!githubSettings.token) {
+    setStatus("Enter your GitHub PAT to save directly to the repository.", true);
+    return;
+  }
+
   const payload = collectForm();
-  saveButton.disabled = true;
-  saveButton.textContent = "Saving...";
-  await new Promise((resolve) => setTimeout(resolve, 350));
-  downloadControlsJson(payload);
-  isDirty = false;
-  saveButton.disabled = false;
-  saveButton.textContent = "Save Controls JSON";
-  setStatus("Downloaded updated calendar-controls.json. Replace the hosted file to publish district-wide.");
+
+  try {
+    saveButton.disabled = true;
+    saveButton.textContent = "Saving...";
+    await saveControlsToGithub(githubSettings, payload);
+    isDirty = false;
+    setStatus("Saved to GitHub. Changes will appear on GitHub Pages after publish delay.");
+  } catch (error) {
+    setStatus(error.message || "Save failed.", true);
+  } finally {
+    saveButton.disabled = false;
+    saveButton.textContent = "Save";
+  }
 });
 
 document.getElementById("resetDefaults").addEventListener("click", async () => {
@@ -487,8 +627,10 @@ document.getElementById("clearSaved").addEventListener("click", () => {
   state.importantDates = [];
   renderAll();
   markDirty();
-  setStatus("Cleared form values. Save to export a new controls file.", true);
+  setStatus("Cleared form values.", true);
 });
+
+bindGithubSettings();
 
 fetchSharedControls().then((fresh) => {
   state.schoolYearLabel = fresh.schoolYearLabel;

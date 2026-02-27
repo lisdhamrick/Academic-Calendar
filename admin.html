@@ -169,6 +169,12 @@
         font-size: 0.88rem;
         color: #000;
       }
+
+      .help {
+        margin: 0.3rem 0 0;
+        font-size: 0.8rem;
+        color: #222;
+      }
     </style>
   </head>
   <body>
@@ -229,8 +235,37 @@
         </section>
 
         <section class="admin-section">
+          <h2>GitHub Save Target</h2>
+          <div class="admin-fields">
+            <div class="admin-field">
+              <label for="repoOwner">Repo Owner</label>
+              <input id="repoOwner" type="text" />
+            </div>
+            <div class="admin-field">
+              <label for="repoName">Repo Name</label>
+              <input id="repoName" type="text" />
+            </div>
+            <div class="admin-field">
+              <label for="repoBranch">Branch</label>
+              <input id="repoBranch" type="text" />
+            </div>
+            <div class="admin-field">
+              <label for="repoPath">Controls File Path</label>
+              <input id="repoPath" type="text" />
+            </div>
+          </div>
+          <div class="admin-fields" style="margin-top: 0.5rem">
+            <div class="admin-field">
+              <label for="githubToken">GitHub PAT</label>
+              <input id="githubToken" type="password" autocomplete="off" />
+              <p class="help">Needs repo write access. Stored only in this browser.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="admin-section">
           <div class="admin-actions">
-            <button class="btn btn-primary" id="saveControls" type="button">Save Controls JSON</button>
+            <button class="btn btn-primary" id="saveControls" type="button">Save</button>
             <button class="btn" id="resetDefaults" type="button">Reload Shared File</button>
             <button class="btn btn-danger" id="clearSaved" type="button">Clear Form</button>
           </div>
