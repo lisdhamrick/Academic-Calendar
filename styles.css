@@ -19,7 +19,6 @@
   --marker-depth: clamp(0.24rem, 0.38vw, 0.4rem);
   --marker-gap: 1px;
   --marker-stroke: 2px;
-  --month-content-max: 14.9rem;
   --calendar-number-size: clamp(0.68rem, 1vw, 0.82rem);
   --info-panel-padding: 1.8rem 1.5rem 0.85rem;
   --info-heading-rule-pad: 0.6rem;
@@ -101,7 +100,7 @@ body {
 }
 
 .month-card {
-  padding: 0.75rem;
+  padding: 0.75rem 0;
   background: transparent;
 }
 
@@ -110,8 +109,8 @@ body {
   justify-content: space-between;
   align-items: baseline;
   border-bottom: 2px solid var(--gold);
-  width: min(100%, var(--month-content-max));
-  margin: 0 auto 0.6rem;
+  width: 100%;
+  margin: 0 0 0.6rem;
 }
 
 .month-card h3,
@@ -134,12 +133,12 @@ body {
 .weekday-row,
 .days-grid {
   list-style: none;
-  margin: 0 auto;
+  margin: 0;
   padding: 0;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 0;
-  width: min(100%, var(--month-content-max));
+  width: 100%;
 }
 
 .weekday-row {
