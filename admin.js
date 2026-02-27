@@ -1,4 +1,4 @@
-const STORAGE_KEY = "academicCalendarControlsV1";
+const CONTROLS_URL = window.ACADEMIC_CALENDAR_CONTROLS_URL || "./calendar-controls.json";
 
 const MONTHS = [
   "January",
@@ -29,99 +29,17 @@ const GRADING_META = {
   gp9: { label: "9-Week Grading Periods", color: "#ffc000" }
 };
 
-const DEFAULT_CONTROLS = {
-  schoolYearLabel: "2026-2027",
-  startYear: 2026,
-  startMonth: 6,
-  monthsToRender: 12,
-  eventRules: [
-    { type: "newTeacherTraining", start: "2026-08-03", end: "2026-08-03", weekdaysOnly: false },
-    {
-      type: "teacherProfessionalLearning",
-      start: "2026-08-03",
-      end: "2026-08-11",
-      weekdaysOnly: true
-    },
-    { type: "firstLastDay", start: "2026-08-12", end: "2026-08-12", weekdaysOnly: false },
-    { type: "studentStaffHoliday", start: "2026-09-07", end: "2026-09-07", weekdaysOnly: false },
-    {
-      type: "teacherProfessionalLearning",
-      start: "2026-09-21",
-      end: "2026-09-21",
-      weekdaysOnly: false
-    },
-    {
-      type: "teacherProfessionalLearning",
-      start: "2026-10-09",
-      end: "2026-10-09",
-      weekdaysOnly: false
-    },
-    { type: "studentStaffHoliday", start: "2026-10-12", end: "2026-10-13", weekdaysOnly: false },
-    {
-      type: "teacherProfessionalLearning",
-      start: "2026-11-02",
-      end: "2026-11-03",
-      weekdaysOnly: true
-    },
-    { type: "studentStaffHoliday", start: "2026-11-23", end: "2026-11-27", weekdaysOnly: true },
-    { type: "earlyRelease", start: "2026-12-18", end: "2026-12-18", weekdaysOnly: false },
-    { type: "studentStaffHoliday", start: "2026-12-21", end: "2026-12-31", weekdaysOnly: true },
-    { type: "studentStaffHoliday", start: "2027-01-01", end: "2027-01-01", weekdaysOnly: false },
-    {
-      type: "teacherProfessionalLearning",
-      start: "2027-01-04",
-      end: "2027-01-04",
-      weekdaysOnly: false
-    },
-    { type: "studentStaffHoliday", start: "2027-01-18", end: "2027-01-18", weekdaysOnly: false },
-    {
-      type: "teacherProfessionalLearning",
-      start: "2027-02-12",
-      end: "2027-02-12",
-      weekdaysOnly: false
-    },
-    { type: "studentStaffHoliday", start: "2027-02-15", end: "2027-02-16", weekdaysOnly: true },
-    { type: "studentStaffHoliday", start: "2027-03-15", end: "2027-03-19", weekdaysOnly: true },
-    { type: "studentStaffHoliday", start: "2027-03-26", end: "2027-03-26", weekdaysOnly: false },
-    {
-      type: "teacherProfessionalLearning",
-      start: "2027-03-29",
-      end: "2027-03-29",
-      weekdaysOnly: false
-    },
-    {
-      type: "teacherProfessionalLearning",
-      start: "2027-04-26",
-      end: "2027-04-26",
-      weekdaysOnly: false
-    },
-    { type: "earlyRelease", start: "2027-05-27", end: "2027-05-27", weekdaysOnly: false },
-    { type: "firstLastDay", start: "2027-05-27", end: "2027-05-27", weekdaysOnly: false }
-  ],
-  gradingRanges: {
-    gp6: [
-      { start: "2026-09-28", end: "2026-11-06" },
-      { start: "2026-11-09", end: "2027-01-29" },
-      { start: "2027-02-01", end: "2027-03-26" },
-      { start: "2027-03-29", end: "2027-05-27" }
-    ],
-    gp9: [
-      { start: "2026-08-12", end: "2026-10-16" },
-      { start: "2026-10-19", end: "2027-01-08" },
-      { start: "2027-01-11", end: "2027-03-19" },
-      { start: "2027-03-22", end: "2027-05-27" }
-    ]
-  },
-  importantDates: [
-    { label: "First Day of School", dateText: "Aug. 12, 2026" },
-    { label: "Fall Break (Student / Staff Holiday)", dateText: "Nov. 23-27, 2026" },
-    { label: "Early Release", dateText: "Dec. 18, 2026" },
-    { label: "Winter Break (Student / Staff Holiday)", dateText: "Dec. 21, 2026-Jan. 1, 2027" },
-    { label: "Spring Break (Student / Staff Holiday)", dateText: "Mar. 15-19, 2027" },
-    { label: "Proposed STAAR Testing", dateText: "Apr. 6-May 1, 2027" },
-    { label: "Last Day of School / Early Release", dateText: "May 27, 2027" }
-  ]
-};
+function defaultControls() {
+  return {
+    schoolYearLabel: "",
+    startYear: 2026,
+    startMonth: 6,
+    monthsToRender: 12,
+    eventRules: [],
+    gradingRanges: { gp6: [], gp9: [] },
+    importantDates: []
+  };
+}
 
 function deepClone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -134,21 +52,25 @@ function createEmptyEventGroups() {
   }, {});
 }
 
-function createEmptyGradingGroups() {
-  return { gp6: [], gp9: [] };
-}
-
 function groupEventRules(eventRules) {
   const groups = createEmptyEventGroups();
   (eventRules || []).forEach((rule) => {
     if (!rule || !groups[rule.type]) return;
-    groups[rule.type].push({
-      start: rule.start || "",
-      end: rule.end || rule.start || "",
-      weekdaysOnly: Boolean(rule.weekdaysOnly)
-    });
+    groups[rule.type].push({ start: rule.start || "", end: rule.end || rule.start || "" });
   });
   return groups;
+}
+
+function normalizeGradingRanges(saved) {
+  if (!saved || typeof saved !== "object") return { gp6: [], gp9: [] };
+  return {
+    gp6: Array.isArray(saved.gp6)
+      ? saved.gp6.map((range) => ({ start: range.start || "", end: range.end || "" }))
+      : [],
+    gp9: Array.isArray(saved.gp9)
+      ? saved.gp9.map((range) => ({ start: range.start || "", end: range.end || "" }))
+      : []
+  };
 }
 
 function markersToRanges(markers, type) {
@@ -163,9 +85,7 @@ function markersToRanges(markers, type) {
   sorted.forEach((marker) => {
     if (marker.side === "start") {
       activeStart = marker.date;
-      return;
-    }
-    if (marker.side === "end" && activeStart) {
+    } else if (marker.side === "end" && activeStart) {
       ranges.push({ start: activeStart, end: marker.date });
       activeStart = "";
     }
@@ -174,67 +94,32 @@ function markersToRanges(markers, type) {
   return ranges;
 }
 
-function normalizeGradingRanges(saved) {
-  if (saved && typeof saved === "object") {
-    return {
-      gp6: Array.isArray(saved.gp6)
-        ? saved.gp6.map((range) => ({ start: range.start || "", end: range.end || "" }))
-        : [],
-      gp9: Array.isArray(saved.gp9)
-        ? saved.gp9.map((range) => ({ start: range.start || "", end: range.end || "" }))
-        : []
-    };
-  }
-  return createEmptyGradingGroups();
-}
-
-function loadControls() {
-  const defaults = deepClone(DEFAULT_CONTROLS);
-
+async function fetchSharedControls() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      return {
-        schoolYearLabel: defaults.schoolYearLabel,
-        startYear: defaults.startYear,
-        startMonth: defaults.startMonth,
-        monthsToRender: defaults.monthsToRender,
-        eventGroups: groupEventRules(defaults.eventRules),
-        gradingGroups: normalizeGradingRanges(defaults.gradingRanges),
-        importantDates: defaults.importantDates
-      };
-    }
-
-    const saved = JSON.parse(raw);
-    const gradingGroups = saved.gradingRanges
-      ? normalizeGradingRanges(saved.gradingRanges)
-      : {
-          gp6: markersToRanges(saved.gradingMarkers || [], "gp6"),
-          gp9: markersToRanges(saved.gradingMarkers || [], "gp9")
-        };
-
+    const response = await fetch(`${CONTROLS_URL}?v=${Date.now()}`, { cache: "no-store" });
+    if (!response.ok) return defaultControls();
+    const data = await response.json();
     return {
-      schoolYearLabel: saved.schoolYearLabel || defaults.schoolYearLabel,
-      startYear: Number.isInteger(saved.startYear) ? saved.startYear : defaults.startYear,
-      startMonth: Number.isInteger(saved.startMonth) ? saved.startMonth : defaults.startMonth,
-      monthsToRender: Number.isInteger(saved.monthsToRender)
-        ? saved.monthsToRender
-        : defaults.monthsToRender,
-      eventGroups: groupEventRules(saved.eventRules || defaults.eventRules),
-      gradingGroups,
-      importantDates: Array.isArray(saved.importantDates)
-        ? saved.importantDates.map((entry) => ({ label: entry.label || "", dateText: entry.dateText || "" }))
-        : defaults.importantDates
+      schoolYearLabel: data.schoolYearLabel || "",
+      startYear: Number.isInteger(data.startYear) ? data.startYear : 2026,
+      startMonth: Number.isInteger(data.startMonth) ? data.startMonth : 6,
+      monthsToRender: Number.isInteger(data.monthsToRender) ? data.monthsToRender : 12,
+      eventGroups: groupEventRules(data.eventRules || []),
+      gradingGroups: data.gradingRanges
+        ? normalizeGradingRanges(data.gradingRanges)
+        : {
+            gp6: markersToRanges(data.gradingMarkers || [], "gp6"),
+            gp9: markersToRanges(data.gradingMarkers || [], "gp9")
+          },
+      importantDates: Array.isArray(data.importantDates)
+        ? data.importantDates.map((entry) => ({ label: entry.label || "", dateText: entry.dateText || "" }))
+        : []
     };
   } catch {
     return {
-      schoolYearLabel: defaults.schoolYearLabel,
-      startYear: defaults.startYear,
-      startMonth: defaults.startMonth,
-      monthsToRender: defaults.monthsToRender,
-      eventGroups: groupEventRules(defaults.eventRules),
-      gradingGroups: normalizeGradingRanges(defaults.gradingRanges),
-      importantDates: defaults.importantDates
+      ...defaultControls(),
+      eventGroups: createEmptyEventGroups(),
+      gradingGroups: { gp6: [], gp9: [] }
     };
   }
 }
@@ -251,7 +136,15 @@ function rangesToMarkers(gradingGroups) {
   return markers;
 }
 
-const state = loadControls();
+const state = {
+  schoolYearLabel: "",
+  startYear: 2026,
+  startMonth: 6,
+  monthsToRender: 12,
+  eventGroups: createEmptyEventGroups(),
+  gradingGroups: { gp6: [], gp9: [] },
+  importantDates: []
+};
 
 const schoolYearLabelInput = document.getElementById("schoolYearLabel");
 const startYearInput = document.getElementById("startYear");
@@ -261,6 +154,10 @@ const eventGroupsContainer = document.getElementById("eventGroups");
 const gradingGroupsContainer = document.getElementById("gradingGroups");
 const importantDatesBody = document.getElementById("importantDatesBody");
 const statusLine = document.getElementById("statusLine");
+const saveButton = document.getElementById("saveControls");
+
+let statusTimer = null;
+let isDirty = false;
 
 MONTHS.forEach((monthName, index) => {
   const option = document.createElement("option");
@@ -269,12 +166,37 @@ MONTHS.forEach((monthName, index) => {
   startMonthSelect.appendChild(option);
 });
 
+function setStatus(message, persist = false) {
+  statusLine.textContent = message;
+  if (statusTimer) {
+    clearTimeout(statusTimer);
+    statusTimer = null;
+  }
+  if (!persist && message) {
+    statusTimer = setTimeout(() => {
+      statusLine.textContent = "";
+      statusTimer = null;
+    }, 2500);
+  }
+}
+
+function markDirty() {
+  if (!isDirty) {
+    isDirty = true;
+    saveButton.textContent = "Save Controls JSON";
+  }
+  setStatus("");
+}
+
 function createDeleteButton(onClick) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "btn btn-danger";
   button.textContent = "Remove";
-  button.addEventListener("click", onClick);
+  button.addEventListener("click", () => {
+    onClick();
+    markDirty();
+  });
   return button;
 }
 
@@ -303,8 +225,9 @@ function renderEventGroups() {
     addBtn.className = "btn";
     addBtn.textContent = "Add Range";
     addBtn.addEventListener("click", () => {
-      ranges.push({ start: "", end: "", weekdaysOnly: false });
+      ranges.push({ start: "", end: "" });
       renderEventGroups();
+      markDirty();
     });
     head.appendChild(addBtn);
 
@@ -315,7 +238,6 @@ function renderEventGroups() {
         <tr>
           <th>Start</th>
           <th>End</th>
-          <th class="checkbox-cell">Weekdays Only</th>
           <th>Action</th>
         </tr>
       </thead>
@@ -331,6 +253,7 @@ function renderEventGroups() {
       const startInput = createInput("date", range.start);
       startInput.addEventListener("change", () => {
         range.start = startInput.value;
+        markDirty();
       });
       startCell.appendChild(startInput);
 
@@ -338,18 +261,9 @@ function renderEventGroups() {
       const endInput = createInput("date", range.end || range.start);
       endInput.addEventListener("change", () => {
         range.end = endInput.value;
+        markDirty();
       });
       endCell.appendChild(endInput);
-
-      const weekdaysCell = document.createElement("td");
-      weekdaysCell.className = "checkbox-cell";
-      const weekdaysInput = document.createElement("input");
-      weekdaysInput.type = "checkbox";
-      weekdaysInput.checked = Boolean(range.weekdaysOnly);
-      weekdaysInput.addEventListener("change", () => {
-        range.weekdaysOnly = weekdaysInput.checked;
-      });
-      weekdaysCell.appendChild(weekdaysInput);
 
       const actionCell = document.createElement("td");
       actionCell.appendChild(
@@ -359,7 +273,7 @@ function renderEventGroups() {
         })
       );
 
-      row.append(startCell, endCell, weekdaysCell, actionCell);
+      row.append(startCell, endCell, actionCell);
       tbody.appendChild(row);
     });
 
@@ -388,6 +302,7 @@ function renderGradingGroups() {
     addBtn.addEventListener("click", () => {
       ranges.push({ start: "", end: "" });
       renderGradingGroups();
+      markDirty();
     });
     head.appendChild(addBtn);
 
@@ -413,6 +328,7 @@ function renderGradingGroups() {
       const startInput = createInput("date", range.start);
       startInput.addEventListener("change", () => {
         range.start = startInput.value;
+        markDirty();
       });
       startCell.appendChild(startInput);
 
@@ -420,6 +336,7 @@ function renderGradingGroups() {
       const endInput = createInput("date", range.end);
       endInput.addEventListener("change", () => {
         range.end = endInput.value;
+        markDirty();
       });
       endCell.appendChild(endInput);
 
@@ -450,6 +367,7 @@ function renderImportantDates() {
     const labelInput = createInput("text", entry.label);
     labelInput.addEventListener("change", () => {
       entry.label = labelInput.value;
+      markDirty();
     });
     labelCell.appendChild(labelInput);
 
@@ -457,6 +375,7 @@ function renderImportantDates() {
     const dateTextInput = createInput("text", entry.dateText);
     dateTextInput.addEventListener("change", () => {
       entry.dateText = dateTextInput.value;
+      markDirty();
     });
     dateTextCell.appendChild(dateTextInput);
 
@@ -491,13 +410,13 @@ function flattenEventRules(eventGroups) {
         type,
         start: range.start,
         end: range.end || range.start,
-        weekdaysOnly: Boolean(range.weekdaysOnly)
+        weekdaysOnly: true
       }))
   );
 }
 
 function collectForm() {
-  return {
+  const payload = {
     schoolYearLabel: schoolYearLabelInput.value.trim(),
     startYear: Number(startYearInput.value),
     startMonth: Number(startMonthSelect.value),
@@ -510,39 +429,74 @@ function collectForm() {
     gradingMarkers: rangesToMarkers(state.gradingGroups),
     importantDates: state.importantDates.filter((entry) => entry.label && entry.dateText)
   };
+  return payload;
 }
 
-function setStatus(message) {
-  statusLine.textContent = message;
+function downloadControlsJson(payload) {
+  const blob = new Blob([`${JSON.stringify(payload, null, 2)}\n`], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "calendar-controls.json";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }
+
+schoolYearLabelInput.addEventListener("input", markDirty);
+startYearInput.addEventListener("input", markDirty);
+startMonthSelect.addEventListener("change", markDirty);
+monthsToRenderInput.addEventListener("input", markDirty);
 
 document.getElementById("addImportantDate").addEventListener("click", () => {
   state.importantDates.push({ label: "", dateText: "" });
   renderImportantDates();
+  markDirty();
 });
 
-document.getElementById("saveControls").addEventListener("click", () => {
+document.getElementById("saveControls").addEventListener("click", async () => {
   const payload = collectForm();
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-  setStatus("Saved. Refresh the calendar page to see updates.");
+  saveButton.disabled = true;
+  saveButton.textContent = "Saving...";
+  await new Promise((resolve) => setTimeout(resolve, 350));
+  downloadControlsJson(payload);
+  isDirty = false;
+  saveButton.disabled = false;
+  saveButton.textContent = "Save Controls JSON";
+  setStatus("Downloaded updated calendar-controls.json. Replace the hosted file to publish district-wide.");
 });
 
-document.getElementById("resetDefaults").addEventListener("click", () => {
-  const defaults = deepClone(DEFAULT_CONTROLS);
-  state.schoolYearLabel = defaults.schoolYearLabel;
-  state.startYear = defaults.startYear;
-  state.startMonth = defaults.startMonth;
-  state.monthsToRender = defaults.monthsToRender;
-  state.eventGroups = groupEventRules(defaults.eventRules);
-  state.gradingGroups = normalizeGradingRanges(defaults.gradingRanges);
-  state.importantDates = defaults.importantDates;
+document.getElementById("resetDefaults").addEventListener("click", async () => {
+  const fresh = await fetchSharedControls();
+  state.schoolYearLabel = fresh.schoolYearLabel;
+  state.startYear = fresh.startYear;
+  state.startMonth = fresh.startMonth;
+  state.monthsToRender = fresh.monthsToRender;
+  state.eventGroups = deepClone(fresh.eventGroups || createEmptyEventGroups());
+  state.gradingGroups = deepClone(fresh.gradingGroups || { gp6: [], gp9: [] });
+  state.importantDates = deepClone(fresh.importantDates || []);
   renderAll();
-  setStatus("Form reset to defaults. Click Save to apply.");
+  isDirty = false;
+  setStatus("Reloaded values from shared calendar-controls.json.");
 });
 
 document.getElementById("clearSaved").addEventListener("click", () => {
-  localStorage.removeItem(STORAGE_KEY);
-  setStatus("Saved control data cleared. Calendar page will fall back to defaults.");
+  state.eventGroups = createEmptyEventGroups();
+  state.gradingGroups = { gp6: [], gp9: [] };
+  state.importantDates = [];
+  renderAll();
+  markDirty();
+  setStatus("Cleared form values. Save to export a new controls file.", true);
 });
 
-renderAll();
+fetchSharedControls().then((fresh) => {
+  state.schoolYearLabel = fresh.schoolYearLabel;
+  state.startYear = fresh.startYear;
+  state.startMonth = fresh.startMonth;
+  state.monthsToRender = fresh.monthsToRender;
+  state.eventGroups = deepClone(fresh.eventGroups || createEmptyEventGroups());
+  state.gradingGroups = deepClone(fresh.gradingGroups || { gp6: [], gp9: [] });
+  state.importantDates = deepClone(fresh.importantDates || []);
+  renderAll();
+});

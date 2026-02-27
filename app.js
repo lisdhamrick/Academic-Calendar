@@ -1,28 +1,28 @@
-const STORAGE_KEY = "academicCalendarControlsV1";
+const CONTROLS_URL = window.ACADEMIC_CALENDAR_CONTROLS_URL || "./calendar-controls.json";
 
 const DEFAULT_EVENT_RULES = [
-  { type: "newTeacherTraining", start: "2026-08-03", end: "2026-08-03", weekdaysOnly: false },
+  { type: "newTeacherTraining", start: "2026-08-03", end: "2026-08-03", weekdaysOnly: true },
   {
     type: "teacherProfessionalLearning",
     start: "2026-08-03",
     end: "2026-08-11",
     weekdaysOnly: true
   },
-  { type: "firstLastDay", start: "2026-08-12", end: "2026-08-12", weekdaysOnly: false },
-  { type: "studentStaffHoliday", start: "2026-09-07", end: "2026-09-07", weekdaysOnly: false },
+  { type: "firstLastDay", start: "2026-08-12", end: "2026-08-12", weekdaysOnly: true },
+  { type: "studentStaffHoliday", start: "2026-09-07", end: "2026-09-07", weekdaysOnly: true },
   {
     type: "teacherProfessionalLearning",
     start: "2026-09-21",
     end: "2026-09-21",
-    weekdaysOnly: false
+    weekdaysOnly: true
   },
   {
     type: "teacherProfessionalLearning",
     start: "2026-10-09",
     end: "2026-10-09",
-    weekdaysOnly: false
+    weekdaysOnly: true
   },
-  { type: "studentStaffHoliday", start: "2026-10-12", end: "2026-10-13", weekdaysOnly: false },
+  { type: "studentStaffHoliday", start: "2026-10-12", end: "2026-10-13", weekdaysOnly: true },
   {
     type: "teacherProfessionalLearning",
     start: "2026-11-02",
@@ -30,39 +30,39 @@ const DEFAULT_EVENT_RULES = [
     weekdaysOnly: true
   },
   { type: "studentStaffHoliday", start: "2026-11-23", end: "2026-11-27", weekdaysOnly: true },
-  { type: "earlyRelease", start: "2026-12-18", end: "2026-12-18", weekdaysOnly: false },
+  { type: "earlyRelease", start: "2026-12-18", end: "2026-12-18", weekdaysOnly: true },
   { type: "studentStaffHoliday", start: "2026-12-21", end: "2026-12-31", weekdaysOnly: true },
-  { type: "studentStaffHoliday", start: "2027-01-01", end: "2027-01-01", weekdaysOnly: false },
+  { type: "studentStaffHoliday", start: "2027-01-01", end: "2027-01-01", weekdaysOnly: true },
   {
     type: "teacherProfessionalLearning",
     start: "2027-01-04",
     end: "2027-01-04",
-    weekdaysOnly: false
+    weekdaysOnly: true
   },
-  { type: "studentStaffHoliday", start: "2027-01-18", end: "2027-01-18", weekdaysOnly: false },
+  { type: "studentStaffHoliday", start: "2027-01-18", end: "2027-01-18", weekdaysOnly: true },
   {
     type: "teacherProfessionalLearning",
     start: "2027-02-12",
     end: "2027-02-12",
-    weekdaysOnly: false
+    weekdaysOnly: true
   },
   { type: "studentStaffHoliday", start: "2027-02-15", end: "2027-02-16", weekdaysOnly: true },
   { type: "studentStaffHoliday", start: "2027-03-15", end: "2027-03-19", weekdaysOnly: true },
-  { type: "studentStaffHoliday", start: "2027-03-26", end: "2027-03-26", weekdaysOnly: false },
+  { type: "studentStaffHoliday", start: "2027-03-26", end: "2027-03-26", weekdaysOnly: true },
   {
     type: "teacherProfessionalLearning",
     start: "2027-03-29",
     end: "2027-03-29",
-    weekdaysOnly: false
+    weekdaysOnly: true
   },
   {
     type: "teacherProfessionalLearning",
     start: "2027-04-26",
     end: "2027-04-26",
-    weekdaysOnly: false
+    weekdaysOnly: true
   },
-  { type: "earlyRelease", start: "2027-05-27", end: "2027-05-27", weekdaysOnly: false },
-  { type: "firstLastDay", start: "2027-05-27", end: "2027-05-27", weekdaysOnly: false }
+  { type: "earlyRelease", start: "2027-05-27", end: "2027-05-27", weekdaysOnly: true },
+  { type: "firstLastDay", start: "2027-05-27", end: "2027-05-27", weekdaysOnly: true }
 ];
 
 const DEFAULT_GRADING_MARKERS = [
@@ -241,11 +241,11 @@ function applyControlData(data) {
   }
 }
 
-function loadSavedControls() {
+async function loadSharedControls() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw);
+    const response = await fetch(`${CONTROLS_URL}?v=${Date.now()}`, { cache: "no-store" });
+    if (!response.ok) return null;
+    return await response.json();
   } catch {
     return null;
   }
@@ -377,6 +377,9 @@ function renderCalendar() {
       const dayMarkers = markerLookup[cell.key] || [];
       const dayCell = document.createElement("li");
       dayCell.className = "day-cell";
+      if (cell.weekday === 0 || cell.weekday === 6) {
+        dayCell.classList.add("day-weekend");
+      }
 
       if (dayEvents.length > 0) {
         dayEvents.forEach((eventType) => {
@@ -461,5 +464,10 @@ function renderCalendar() {
 }
 
 seedDefaultData();
-applyControlData(loadSavedControls());
-renderCalendar();
+loadSharedControls()
+  .then((data) => {
+    applyControlData(data);
+  })
+  .finally(() => {
+    renderCalendar();
+  });
