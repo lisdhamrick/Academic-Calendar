@@ -20,7 +20,7 @@
   --marker-gap: 1px;
   --marker-stroke: 2px;
   --calendar-number-size: clamp(0.68rem, 1vw, 0.82rem);
-  --edge-slot-width: 1.35em;
+  --weekend-col-fr: 0.67fr;
   --info-panel-padding: 1.8rem 1.5rem 0.85rem;
   --info-heading-rule-pad: 0.6rem;
 }
@@ -137,7 +137,7 @@ body {
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: var(--weekend-col-fr) repeat(5, 1fr) var(--weekend-col-fr);
   gap: 0;
   width: 100%;
 }
@@ -161,22 +161,6 @@ body {
   justify-content: center;
 }
 
-.weekday-row li:nth-child(7n + 1) {
-  justify-content: flex-start;
-}
-
-.weekday-row li:nth-child(7n + 1) .weekday-label {
-  width: var(--edge-slot-width);
-}
-
-.weekday-row li:nth-child(7n) {
-  justify-content: flex-end;
-}
-
-.weekday-row li:nth-child(7n) .weekday-label {
-  width: var(--edge-slot-width);
-}
-
 .day-cell {
   width: 100%;
   height: var(--day-slot-h);
@@ -191,24 +175,6 @@ body {
   position: relative;
   justify-self: stretch;
   overflow: hidden;
-}
-
-.days-grid .day-cell:nth-child(7n + 1) {
-  justify-content: flex-start;
-}
-
-.days-grid .day-cell:nth-child(7n) {
-  justify-content: flex-end;
-}
-
-.days-grid .day-cell:nth-child(7n + 1) .day-number,
-.days-grid .day-cell:nth-child(7n) .day-number,
-.days-grid .day-cell:nth-child(7n + 1) .day-dot,
-.days-grid .day-cell:nth-child(7n) .day-dot {
-  width: var(--edge-slot-width);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .day-number {
