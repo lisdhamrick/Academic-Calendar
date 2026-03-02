@@ -146,9 +146,22 @@ body {
 }
 
 .weekday-row li {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
   font-weight: 700;
   color: var(--brand);
+}
+
+.weekday-row li:nth-child(7n + 1) {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.weekday-row li:nth-child(7n) {
+  justify-content: flex-end;
+  text-align: right;
 }
 
 .day-cell {
@@ -165,6 +178,16 @@ body {
   position: relative;
   justify-self: stretch;
   overflow: hidden;
+}
+
+.days-grid .day-cell:nth-child(7n + 1) {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.days-grid .day-cell:nth-child(7n) {
+  justify-content: flex-end;
+  text-align: right;
 }
 
 .day-number {
