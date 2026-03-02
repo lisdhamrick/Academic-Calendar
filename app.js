@@ -329,7 +329,13 @@ function renderCalendar() {
         <p>${year}</p>
       </header>
       <ol class="weekday-row">
-        <li>S</li><li>M</li><li>T</li><li>W</li><li>T</li><li>F</li><li>S</li>
+        <li><span class="weekday-label">S</span></li>
+        <li><span class="weekday-label">M</span></li>
+        <li><span class="weekday-label">T</span></li>
+        <li><span class="weekday-label">W</span></li>
+        <li><span class="weekday-label">T</span></li>
+        <li><span class="weekday-label">F</span></li>
+        <li><span class="weekday-label">S</span></li>
       </ol>
       <ol class="days-grid"></ol>
     `;

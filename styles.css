@@ -20,7 +20,7 @@
   --marker-gap: 1px;
   --marker-stroke: 2px;
   --calendar-number-size: clamp(0.68rem, 1vw, 0.82rem);
-  --column-inner-pad: clamp(0.12rem, 0.28vw, 0.28rem);
+  --edge-slot-width: 1.35em;
   --info-panel-padding: 1.8rem 1.5rem 0.85rem;
   --info-heading-rule-pad: 0.6rem;
 }
@@ -151,23 +151,35 @@ body {
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding-inline: var(--column-inner-pad);
   font-weight: 700;
   color: var(--brand);
 }
 
+.weekday-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .weekday-row li:nth-child(7n + 1) {
-  padding-left: 0;
+  justify-content: flex-start;
+}
+
+.weekday-row li:nth-child(7n + 1) .weekday-label {
+  width: var(--edge-slot-width);
 }
 
 .weekday-row li:nth-child(7n) {
-  padding-right: 0;
+  justify-content: flex-end;
+}
+
+.weekday-row li:nth-child(7n) .weekday-label {
+  width: var(--edge-slot-width);
 }
 
 .day-cell {
   width: 100%;
   height: var(--day-slot-h);
-  padding-inline: var(--column-inner-pad);
   border: 0;
   border-radius: 0;
   text-align: center;
@@ -182,13 +194,21 @@ body {
 }
 
 .days-grid .day-cell:nth-child(7n + 1) {
-  padding-left: 0;
-  padding-right: var(--column-inner-pad);
+  justify-content: flex-start;
 }
 
 .days-grid .day-cell:nth-child(7n) {
-  padding-left: var(--column-inner-pad);
-  padding-right: 0;
+  justify-content: flex-end;
+}
+
+.days-grid .day-cell:nth-child(7n + 1) .day-number,
+.days-grid .day-cell:nth-child(7n) .day-number,
+.days-grid .day-cell:nth-child(7n + 1) .day-dot,
+.days-grid .day-cell:nth-child(7n) .day-dot {
+  width: var(--edge-slot-width);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .day-number {
