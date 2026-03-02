@@ -20,6 +20,7 @@
   --marker-gap: 1px;
   --marker-stroke: 2px;
   --calendar-number-size: clamp(0.68rem, 1vw, 0.82rem);
+  --column-inner-pad: clamp(0.12rem, 0.28vw, 0.28rem);
   --info-panel-padding: 1.8rem 1.5rem 0.85rem;
   --info-heading-rule-pad: 0.6rem;
 }
@@ -150,23 +151,23 @@ body {
   align-items: center;
   justify-content: center;
   text-align: center;
+  padding-inline: var(--column-inner-pad);
   font-weight: 700;
   color: var(--brand);
 }
 
 .weekday-row li:nth-child(7n + 1) {
-  justify-content: flex-start;
-  text-align: left;
+  padding-left: 0;
 }
 
 .weekday-row li:nth-child(7n) {
-  justify-content: flex-end;
-  text-align: right;
+  padding-right: 0;
 }
 
 .day-cell {
   width: 100%;
   height: var(--day-slot-h);
+  padding-inline: var(--column-inner-pad);
   border: 0;
   border-radius: 0;
   text-align: center;
@@ -181,13 +182,13 @@ body {
 }
 
 .days-grid .day-cell:nth-child(7n + 1) {
-  justify-content: flex-start;
-  text-align: left;
+  padding-left: 0;
+  padding-right: var(--column-inner-pad);
 }
 
 .days-grid .day-cell:nth-child(7n) {
-  justify-content: flex-end;
-  text-align: right;
+  padding-left: var(--column-inner-pad);
+  padding-right: 0;
 }
 
 .day-number {
