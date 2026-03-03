@@ -197,7 +197,12 @@ function sanitizeImportantDates(entries) {
       (entry) =>
         entry && typeof entry.label === "string" && entry.label && typeof entry.dateText === "string"
     )
-    .map((entry) => ({ label: entry.label, dateText: entry.dateText }));
+    .map((entry) => {
+      const cleaned = { label: entry.label, dateText: entry.dateText };
+      if (typeof entry.start === "string" && entry.start) cleaned.start = entry.start;
+      if (typeof entry.end === "string" && entry.end) cleaned.end = entry.end;
+      return cleaned;
+    });
 }
 
 function applyControlData(data) {
@@ -300,6 +305,168 @@ function weekHasOnlyWeekendMonthDays(weekCells) {
   return monthDays.every((cell) => cell.weekday === 0 || cell.weekday === 6);
 }
 
+const MONTH_INDEX = {
+  jan: 0,
+  january: 0,
+  feb: 1,
+  february: 1,
+  mar: 2,
+  march: 2,
+  apr: 3,
+  april: 3,
+  may: 4,
+  jun: 5,
+  june: 5,
+  jul: 6,
+  july: 6,
+  aug: 7,
+  august: 7,
+  sep: 8,
+  sept: 8,
+  september: 8,
+  oct: 9,
+  october: 9,
+  nov: 10,
+  november: 10,
+  dec: 11,
+  december: 11
+};
+
+function normalizeMonthToken(monthToken) {
+  return monthToken.toLowerCase().replace(/\./g, "");
+}
+
+function inferSchoolYearForMonth(monthIndex) {
+  return monthIndex < CALENDAR_CONFIG.startMonth ? CALENDAR_CONFIG.startYear + 1 : CALENDAR_CONFIG.startYear;
+}
+
+function parseMonthDayYear(part) {
+  const match = part.match(/([A-Za-z]{3,9})\.?\s*(\d{1,2})(?:,\s*(\d{4}))?/);
+  if (!match) return null;
+  const month = MONTH_INDEX[normalizeMonthToken(match[1])];
+  if (month === undefined) return null;
+  const day = Number(match[2]);
+  const year = match[3] ? Number(match[3]) : null;
+  if (!Number.isInteger(day) || day < 1 || day > 31) return null;
+  return { month, day, year };
+}
+
+function parseImportantDateRange(entry) {
+  if (entry.start) {
+    return { start: entry.start, end: entry.end || entry.start };
+  }
+
+  const text = entry.dateText.replace(/[–—]/g, "-").trim();
+  if (!text.includes("-")) {
+    const single = parseMonthDayYear(text);
+    if (!single) return null;
+    const year = single.year ?? inferSchoolYearForMonth(single.month);
+    const iso = createDateKey(new Date(year, single.month, single.day));
+    return { start: iso, end: iso };
+  }
+
+  const parts = text.split("-");
+  if (parts.length < 2) return null;
+
+  const leftPart = parts[0].trim();
+  const rightPart = parts.slice(1).join("-").trim();
+
+  const left = parseMonthDayYear(leftPart);
+  if (!left) return null;
+
+  let right = parseMonthDayYear(rightPart);
+  if (!right) {
+    const rightDayMatch = rightPart.match(/^(\d{1,2})(?:,\s*(\d{4}))?$/);
+    if (!rightDayMatch) return null;
+    right = {
+      month: left.month,
+      day: Number(rightDayMatch[1]),
+      year: rightDayMatch[2] ? Number(rightDayMatch[2]) : null
+    };
+  }
+
+  let leftYear = left.year ?? inferSchoolYearForMonth(left.month);
+  let rightYear = right.year;
+
+  if (!rightYear) {
+    if (right.month < left.month) {
+      rightYear = leftYear + 1;
+    } else {
+      rightYear = leftYear;
+    }
+  }
+
+  const start = createDateKey(new Date(leftYear, left.month, left.day));
+  const end = createDateKey(new Date(rightYear, right.month, right.day));
+  return start <= end ? { start, end } : { start: end, end: start };
+}
+
+function enrichAndSortImportantDates(entries) {
+  const enriched = entries
+    .map((entry, index) => {
+      const parsedRange = parseImportantDateRange(entry);
+      const start = parsedRange?.start || "";
+      const end = parsedRange?.end || start;
+      return { ...entry, start, end, index };
+    })
+    .sort((a, b) => {
+      if (a.start && b.start) return a.start.localeCompare(b.start) || a.index - b.index;
+      if (a.start) return -1;
+      if (b.start) return 1;
+      return a.index - b.index;
+    });
+
+  return enriched;
+}
+
+function createCalendarTooltip() {
+  const existing = document.getElementById("calendarTooltip");
+  if (existing) return existing;
+
+  const tooltip = document.createElement("div");
+  tooltip.id = "calendarTooltip";
+  tooltip.className = "calendar-tooltip";
+  tooltip.setAttribute("role", "tooltip");
+  document.body.appendChild(tooltip);
+  return tooltip;
+}
+
+function positionTooltip(tooltip, anchorEl) {
+  const rect = anchorEl.getBoundingClientRect();
+  const tooltipRect = tooltip.getBoundingClientRect();
+  const spacing = 10;
+  let top = rect.top + window.scrollY - tooltipRect.height - spacing;
+  if (top < window.scrollY + 8) {
+    top = rect.bottom + window.scrollY + spacing;
+  }
+  let left = rect.left + window.scrollX + rect.width / 2 - tooltipRect.width / 2;
+  left = Math.max(window.scrollX + 8, Math.min(left, window.scrollX + window.innerWidth - tooltipRect.width - 8));
+  tooltip.style.top = `${top}px`;
+  tooltip.style.left = `${left}px`;
+}
+
+function showTooltip(tooltip, anchorEl, lines) {
+  if (!lines || lines.length === 0) return;
+  tooltip.innerHTML = lines.map((line) => `<div>${line}</div>`).join("");
+  tooltip.classList.add("is-visible");
+  positionTooltip(tooltip, anchorEl);
+}
+
+function hideTooltip(tooltip) {
+  tooltip.classList.remove("is-visible");
+}
+
+function formatTooltipDate(isoDate) {
+  if (!isoDate) return "";
+  const date = parseISODate(isoDate);
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric"
+  }).format(date);
+}
+
 function getCellVisualData(cell, eventLookup, markerLookup) {
   if (!cell || cell.type !== "day") return { hasVisual: false, signature: "" };
   const dayEvents = eventLookup[cell.key] || [];
@@ -327,12 +494,19 @@ function renderCalendar() {
   const calendarGrid = document.getElementById("calendarGrid");
   const legend = document.getElementById("legend");
   const importantDates = document.getElementById("importantDates");
+  const tooltip = createCalendarTooltip();
+
+  calendarGrid.innerHTML = "";
+  legend.innerHTML = "";
+  importantDates.innerHTML = "";
 
   schoolYearLabel.textContent = CALENDAR_CONFIG.schoolYearLabel;
 
   const monthFormatter = new Intl.DateTimeFormat("en-US", { month: "long" });
   const eventLookup = buildEventLookup(CALENDAR_CONFIG.events);
   const markerLookup = buildMarkerLookup(CALENDAR_CONFIG.gradingMarkers);
+  const sortedImportantDates = enrichAndSortImportantDates(CALENDAR_CONFIG.importantDates);
+  const dayCellMap = new Map();
 
   for (let monthOffset = 0; monthOffset < CALENDAR_CONFIG.monthsToRender; monthOffset += 1) {
     const anchorDate = new Date(
@@ -447,12 +621,16 @@ function renderCalendar() {
           dayCell.appendChild(frameTag);
         }
 
+        dayCell.dataset.date = cell.key;
+
         const nextCell = dayIndex < 6 ? week[dayIndex + 1] : null;
         if (shouldSplitBetweenCells(cell, nextCell, eventLookup, markerLookup)) {
           dayCell.classList.add("split-right");
         }
 
         daysGrid.appendChild(dayCell);
+        if (!dayCellMap.has(cell.key)) dayCellMap.set(cell.key, []);
+        dayCellMap.get(cell.key).push(dayCell);
       });
     });
 
@@ -491,10 +669,79 @@ function renderCalendar() {
     legend.appendChild(item);
   });
 
-  CALENDAR_CONFIG.importantDates.forEach((entry) => {
+  sortedImportantDates.forEach((entry) => {
     const li = document.createElement("li");
+    li.className = "important-date-item";
+    if (entry.start) li.dataset.start = entry.start;
+    if (entry.end) li.dataset.end = entry.end || entry.start;
     li.innerHTML = `<strong>${entry.dateText}</strong><span>${entry.label}</span>`;
     importantDates.appendChild(li);
+  });
+
+  const importantItems = Array.from(importantDates.querySelectorAll(".important-date-item"));
+
+  function clearHighlights() {
+    dayCellMap.forEach((cells) => cells.forEach((el) => el.classList.remove("is-related-highlight")));
+    importantItems.forEach((item) => item.classList.remove("is-related-highlight"));
+  }
+
+  function highlightRange(start, end) {
+    if (!start || !end) return;
+    const inRange = enumerateDateRange(start, end);
+    inRange.forEach((key) => {
+      const cells = dayCellMap.get(key);
+      if (cells) cells.forEach((cell) => cell.classList.add("is-related-highlight"));
+    });
+  }
+
+  dayCellMap.forEach((cells, dateKey) => {
+    cells.forEach((cell) => {
+      cell.addEventListener("mouseenter", () => {
+        clearHighlights();
+        cell.classList.add("is-related-highlight");
+        const matches = sortedImportantDates.filter((entry) => entry.start && dateKey >= entry.start && dateKey <= entry.end);
+        matches.forEach((entry) => {
+          const matchItem = importantItems.find(
+            (item) => item.dataset.start === entry.start && item.dataset.end === entry.end
+          );
+          if (matchItem) matchItem.classList.add("is-related-highlight");
+        });
+
+        const eventNames = (eventLookup[dateKey] || [])
+          .map((type) => CALENDAR_CONFIG.eventTypes[type]?.label)
+          .filter(Boolean);
+        const lines = [
+          formatTooltipDate(dateKey),
+          ...eventNames,
+          ...matches.map((entry) => `${entry.label}: ${entry.dateText}`)
+        ];
+        if (lines.length > 0) showTooltip(tooltip, cell, lines);
+      });
+
+      cell.addEventListener("mouseleave", () => {
+        clearHighlights();
+        hideTooltip(tooltip);
+      });
+    });
+  });
+
+  importantItems.forEach((item) => {
+    item.addEventListener("mouseenter", () => {
+      clearHighlights();
+      item.classList.add("is-related-highlight");
+      const start = item.dataset.start;
+      const end = item.dataset.end || start;
+      if (start) {
+        highlightRange(start, end);
+        const firstMatch = dayCellMap.get(start)?.[0];
+        if (firstMatch) showTooltip(tooltip, firstMatch, [item.querySelector("span")?.textContent || "", item.querySelector("strong")?.textContent || ""]);
+      }
+    });
+
+    item.addEventListener("mouseleave", () => {
+      clearHighlights();
+      hideTooltip(tooltip);
+    });
   });
 }
 
