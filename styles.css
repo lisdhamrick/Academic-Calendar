@@ -53,7 +53,7 @@ body {
   margin-top: 1rem;
   background: var(--brand);
   color: white;
-  padding: 1.3rem 1.5rem;
+  padding: 1.3rem 3rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -444,9 +444,10 @@ body {
 }
 
 #importantDates::-webkit-scrollbar-track {
-  background: #00598720;
+  background: transparent;
   border-radius: 999px;
-  margin-block: 2px;
+  border: 2px solid transparent;
+  box-shadow: inset 0 0 0 999px #00598720;
 }
 
 #importantDates::-webkit-scrollbar-thumb {
@@ -535,7 +536,6 @@ body {
 }
 
 .legend {
-  margin-top: 1rem;
   background: var(--panel);
   padding: 0.8rem;
   display: grid;
@@ -609,8 +609,26 @@ body {
 }
 
 @media (max-width: 1220px) {
+  .calendar-app {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .calendar-grid {
+    order: 1;
+  }
+
+  .legend {
+    order: 2;
+    margin-top: 0;
+  }
+
+  .info-panel {
+    order: 3;
+  }
+
   .app-layout {
-    grid-template-columns: 1fr;
+    display: contents;
   }
 
   .calendar-grid {
