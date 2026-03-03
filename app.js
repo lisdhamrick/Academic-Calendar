@@ -549,7 +549,7 @@ function resolveAccentColorForType(type) {
     newTeacherTraining: "--new-teacher",
     teacherProfessionalLearning: "--staff-dev",
     studentStaffHoliday: "--holiday",
-    earlyRelease: "--gold",
+    earlyRelease: "--early-release",
     firstLastDay: "--first-last",
     proposedStaar: "--staar"
   };
@@ -568,6 +568,11 @@ function buildNamedImportantFromEventRules(rules) {
     if (!name || !rule.start) return;
     const start = rule.start;
     const end = rule.end || rule.start;
+    const isLastDayNamed = /last day/i.test(name);
+    const accentColor = isLastDayNamed
+      ? resolveAccentColorForType("firstLastDay")
+      : resolveAccentColorForType(rule.type);
+
     entries.push({
       id: `ev-${index}`,
       label: name,
@@ -575,7 +580,7 @@ function buildNamedImportantFromEventRules(rules) {
       start,
       end,
       type: rule.type,
-      accentColor: resolveAccentColorForType(rule.type)
+      accentColor
     });
   });
 

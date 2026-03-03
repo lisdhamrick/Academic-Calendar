@@ -11,6 +11,7 @@
   --new-teacher: #63aeca;
   --staff-dev: #ffd44c;
   --holiday: #a3d0a8;
+  --early-release: #d9d9d9;
   --first-last: #b18fc2;
   --gp6: #005987;
   --gp9: #ffc000;
@@ -263,7 +264,7 @@ body {
 }
 
 .event-early-release {
-  background: #d9d9d9;
+  background: var(--early-release);
 }
 
 .event-gp6 {
@@ -482,8 +483,11 @@ body {
   position: absolute;
   inset: 0;
   border-radius: 0;
-  background: rgba(255, 192, 0, 0.22);
-  box-shadow: inset 0 0 12px rgba(255, 192, 0, 0.34);
+  background: transparent;
+  box-shadow:
+    0 0 0 1px rgba(255, 192, 0, 0.5),
+    0 0 10px rgba(255, 192, 0, 0.5),
+    0 0 16px rgba(255, 192, 0, 0.28);
   pointer-events: none;
   z-index: 1;
 }
@@ -498,7 +502,7 @@ body {
   transition: opacity 130ms ease, transform 130ms ease;
   background: #ffffff;
   color: #0d2235;
-  border: 1px solid #c9d4e0;
+  border: 0;
   border-left: 3px solid var(--tooltip-accent);
   border-radius: 0;
   padding: 0.45rem 0.6rem;
