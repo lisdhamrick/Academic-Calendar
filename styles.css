@@ -22,6 +22,7 @@
   --calendar-number-size: clamp(0.68rem, 1vw, 0.82rem);
   --weekend-col-fr: 0.67fr;
   --outer-col-slot: 1.35em;
+  --visual-boundary-gap: 0.16rem;
   --week-row-gap: 0.16rem;
   --info-panel-padding: 1.8rem 1.5rem 0.85rem;
   --info-heading-rule-pad: 0.6rem;
@@ -195,6 +196,10 @@ body {
   position: relative;
   justify-self: stretch;
   overflow: hidden;
+}
+
+.day-cell.split-right {
+  border-right: var(--visual-boundary-gap) solid var(--bg);
 }
 
 .day-glyph {
