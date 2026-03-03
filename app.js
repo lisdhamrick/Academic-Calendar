@@ -616,7 +616,7 @@ function buildFallbackImportantEntries(entries) {
     .map((entry, index) => ({
       id: `imp-${index}`,
       label: entry.label,
-      dateText: entry.dateText,
+      dateText: formatPanelDateRange(entry.start, entry.end),
       start: entry.start,
       end: entry.end,
       accentColor: "#ffc000"
