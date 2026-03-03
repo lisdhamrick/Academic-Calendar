@@ -493,35 +493,28 @@ function positionTooltip(tooltip, anchorEl) {
   const tooltipRect = tooltip.getBoundingClientRect();
   const spacing = 10;
   let top = rect.top + window.scrollY - tooltipRect.height - spacing;
+  let placement = "top";
   if (top < window.scrollY + 8) {
     top = rect.bottom + window.scrollY + spacing;
+    placement = "bottom";
   }
   let left = rect.left + window.scrollX + rect.width / 2 - tooltipRect.width / 2;
   left = Math.max(window.scrollX + 8, Math.min(left, window.scrollX + window.innerWidth - tooltipRect.width - 8));
   tooltip.style.top = `${top}px`;
   tooltip.style.left = `${left}px`;
+  tooltip.dataset.placement = placement;
 }
 
-function showTooltip(tooltip, anchorEl, lines) {
+function showTooltip(tooltip, anchorEl, lines, accentColor = "#ffc000") {
   if (!lines || lines.length === 0) return;
   tooltip.innerHTML = lines.map((line) => `<div>${line}</div>`).join("");
+  tooltip.style.setProperty("--tooltip-accent", accentColor);
   tooltip.classList.add("is-visible");
   positionTooltip(tooltip, anchorEl);
 }
 
 function hideTooltip(tooltip) {
   tooltip.classList.remove("is-visible");
-}
-
-function formatTooltipDate(isoDate) {
-  if (!isoDate) return "";
-  const date = parseISODate(isoDate);
-  return new Intl.DateTimeFormat("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric"
-  }).format(date);
 }
 
 function formatPanelDateRange(startISO, endISO) {
@@ -550,6 +543,24 @@ function isWeekendISO(isoDate) {
   return day === 0 || day === 6;
 }
 
+function resolveAccentColorForType(type) {
+  const rootStyles = getComputedStyle(document.documentElement);
+  const varByType = {
+    newTeacherTraining: "--new-teacher",
+    teacherProfessionalLearning: "--staff-dev",
+    studentStaffHoliday: "--holiday",
+    earlyRelease: "--gold",
+    firstLastDay: "--first-last",
+    proposedStaar: "--staar"
+  };
+  const varName = varByType[type];
+  if (varName) {
+    const resolved = rootStyles.getPropertyValue(varName).trim();
+    if (resolved) return resolved;
+  }
+  return "#ffc000";
+}
+
 function buildNamedImportantFromEventRules(rules) {
   const entries = [];
   rules.forEach((rule, index) => {
@@ -562,7 +573,9 @@ function buildNamedImportantFromEventRules(rules) {
       label: name,
       dateText: formatPanelDateRange(start, end),
       start,
-      end
+      end,
+      type: rule.type,
+      accentColor: resolveAccentColorForType(rule.type)
     });
   });
 
@@ -578,7 +591,8 @@ function buildFallbackImportantEntries(entries) {
       label: entry.label,
       dateText: entry.dateText,
       start: entry.start,
-      end: entry.end
+      end: entry.end,
+      accentColor: "#ffc000"
     }));
 }
 
@@ -805,6 +819,7 @@ function renderCalendar() {
     const li = document.createElement("li");
     li.className = "important-date-item";
     li.dataset.importantId = entry.id;
+    if (entry.accentColor) li.style.setProperty("--item-accent", entry.accentColor);
     if (entry.start) li.dataset.start = entry.start;
     if (entry.end) li.dataset.end = entry.end || entry.start;
     li.innerHTML = `<strong>${entry.dateText}</strong><span>${entry.label}</span>`;
@@ -845,8 +860,12 @@ function renderCalendar() {
           if (matchItem) matchItem.classList.add("is-related-highlight");
         });
 
-        const lines = matches.flatMap((entry) => [entry.label, entry.dateText]);
-        if (lines.length > 0) showTooltip(tooltip, cell, lines);
+        if (matches.length === 1) {
+          showTooltip(tooltip, cell, [matches[0].label, matches[0].dateText], matches[0].accentColor);
+        } else if (matches.length > 1) {
+          const lines = matches.flatMap((entry) => [entry.label, entry.dateText]);
+          showTooltip(tooltip, cell, lines, "#ffc000");
+        }
       });
 
       cell.addEventListener("mouseleave", () => {
@@ -866,7 +885,7 @@ function renderCalendar() {
       highlightImportantEntry(entry);
       const firstDate = entry.highlightDates[0];
       const firstMatch = firstDate ? dayCellMap.get(firstDate)?.[0] : null;
-      if (firstMatch) showTooltip(tooltip, firstMatch, [entry.label, entry.dateText]);
+      if (firstMatch) showTooltip(tooltip, firstMatch, [entry.label, entry.dateText], entry.accentColor);
     });
 
     item.addEventListener("mouseleave", () => {
