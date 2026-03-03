@@ -161,6 +161,14 @@ body {
   justify-content: center;
 }
 
+.weekday-row li:first-child {
+  justify-content: flex-start;
+}
+
+.weekday-row li:last-child {
+  justify-content: flex-end;
+}
+
 .day-cell {
   width: 100%;
   height: var(--day-slot-h);
@@ -175,6 +183,14 @@ body {
   position: relative;
   justify-self: stretch;
   overflow: hidden;
+}
+
+.days-grid .day-cell:nth-child(7n + 1) {
+  justify-content: flex-start;
+}
+
+.days-grid .day-cell:nth-child(7n) {
+  justify-content: flex-end;
 }
 
 .day-number {
