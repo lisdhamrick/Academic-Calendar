@@ -22,6 +22,7 @@
   --calendar-number-size: clamp(0.68rem, 1vw, 0.82rem);
   --weekend-col-fr: 0.67fr;
   --outer-col-slot: 1.35em;
+  --week-row-gap: 0.16rem;
   --info-panel-padding: 1.8rem 1.5rem 0.85rem;
   --info-heading-rule-pad: 0.6rem;
 }
@@ -97,12 +98,12 @@ body {
   background: var(--panel);
   display: grid;
   grid-template-columns: repeat(4, minmax(190px, 1fr));
-  gap: 1rem 3rem;
+  gap: 2rem 3rem;
   padding: 1.5rem;
 }
 
 .month-card {
-  padding: 0.75rem 0;
+  padding: 0;
   background: transparent;
 }
 
@@ -139,12 +140,17 @@ body {
   padding: 0;
   display: grid;
   grid-template-columns: var(--weekend-col-fr) repeat(5, 1fr) var(--weekend-col-fr);
-  gap: 0;
+  column-gap: 0;
   width: 100%;
 }
 
 .weekday-row {
   margin-bottom: 0.25rem;
+  row-gap: 0;
+}
+
+.days-grid {
+  row-gap: var(--week-row-gap);
 }
 
 .weekday-row li {
@@ -407,6 +413,11 @@ body {
   font-size: 0.84rem;
   color: #000000;
   font-weight: 500;
+  order: 1;
+}
+
+#importantDates span {
+  order: 2;
 }
 
 #importantDates {

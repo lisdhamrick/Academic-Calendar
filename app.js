@@ -464,7 +464,7 @@ function renderCalendar() {
 
   CALENDAR_CONFIG.importantDates.forEach((entry) => {
     const li = document.createElement("li");
-    li.innerHTML = `<span>${entry.label}</span><strong>${entry.dateText}</strong>`;
+    li.innerHTML = `<strong>${entry.dateText}</strong><span>${entry.label}</span>`;
     importantDates.appendChild(li);
   });
 }
