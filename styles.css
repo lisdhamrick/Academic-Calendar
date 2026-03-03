@@ -445,6 +445,7 @@ body {
 #importantDates::-webkit-scrollbar-track {
   background: #00598720;
   border-radius: 999px;
+  margin-block: 2px;
 }
 
 #importantDates::-webkit-scrollbar-thumb {
@@ -495,27 +496,16 @@ body {
   opacity: 0;
   transform: translateY(4px);
   transition: opacity 130ms ease, transform 130ms ease;
-  background: rgba(12, 26, 37, 0.95);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: #ffffff;
+  color: #0d2235;
+  border: 1px solid #c9d4e0;
   border-left: 3px solid var(--tooltip-accent);
-  border-radius: 10px;
+  border-radius: 0;
   padding: 0.45rem 0.6rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 6px 18px rgba(8, 32, 56, 0.22);
   font-size: 0.76rem;
   line-height: 1.35;
   max-width: 260px;
-}
-
-.calendar-tooltip::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: 2px;
-  border-radius: 10px 10px 0 0;
-  background: var(--tooltip-accent);
 }
 
 .calendar-tooltip::after {
@@ -531,12 +521,12 @@ body {
 
 .calendar-tooltip[data-placement="top"]::after {
   bottom: -8px;
-  border-top: 8px solid rgba(12, 26, 37, 0.95);
+  border-top: 8px solid #ffffff;
 }
 
 .calendar-tooltip[data-placement="bottom"]::after {
   top: -8px;
-  border-bottom: 8px solid rgba(12, 26, 37, 0.95);
+  border-bottom: 8px solid #ffffff;
 }
 
 .calendar-tooltip.is-visible {
