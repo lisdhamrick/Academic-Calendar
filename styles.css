@@ -436,7 +436,7 @@ body {
   overflow: auto;
   padding-right: 0.35rem;
   scrollbar-width: thin;
-  scrollbar-color: var(--gold) #00598720;
+  scrollbar-color: var(--gold) transparent;
 }
 
 #importantDates::-webkit-scrollbar {
