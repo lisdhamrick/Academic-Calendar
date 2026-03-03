@@ -21,6 +21,7 @@
   --marker-stroke: 2px;
   --calendar-number-size: clamp(0.68rem, 1vw, 0.82rem);
   --weekend-col-fr: 0.67fr;
+  --outer-col-slot: 1.35em;
   --info-panel-padding: 1.8rem 1.5rem 0.85rem;
   --info-heading-rule-pad: 0.6rem;
 }
@@ -169,6 +170,11 @@ body {
   justify-content: flex-end;
 }
 
+.weekday-row li:first-child .weekday-label,
+.weekday-row li:last-child .weekday-label {
+  width: var(--outer-col-slot);
+}
+
 .day-cell {
   width: 100%;
   height: var(--day-slot-h);
@@ -185,12 +191,23 @@ body {
   overflow: hidden;
 }
 
+.day-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .days-grid .day-cell:nth-child(7n + 1) {
   justify-content: flex-start;
 }
 
 .days-grid .day-cell:nth-child(7n) {
   justify-content: flex-end;
+}
+
+.days-grid .day-cell:nth-child(7n + 1) .day-glyph,
+.days-grid .day-cell:nth-child(7n) .day-glyph {
+  width: var(--outer-col-slot);
 }
 
 .day-number {

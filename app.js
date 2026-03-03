@@ -374,7 +374,7 @@ function renderCalendar() {
       if (cell.type === "spacer") {
         const spacer = document.createElement("li");
         spacer.className = "day-cell spacer";
-        spacer.innerHTML = '<span class="day-dot" aria-hidden="true"></span>';
+        spacer.innerHTML = '<span class="day-glyph" aria-hidden="true"><span class="day-dot"></span></span>';
         daysGrid.appendChild(spacer);
         return;
       }
@@ -396,10 +396,10 @@ function renderCalendar() {
 
       if (dayEvents.includes("earlyRelease")) {
         dayCell.classList.add("day-cell-er");
-        dayCell.innerHTML = '<span class="day-number er-label">ER</span>';
+        dayCell.innerHTML = '<span class="day-glyph"><span class="day-number er-label">ER</span></span>';
         dayCell.setAttribute("aria-label", `Early Release: ${cell.day}`);
       } else {
-        dayCell.innerHTML = `<span class="day-number">${cell.day}</span>`;
+        dayCell.innerHTML = `<span class="day-glyph"><span class="day-number">${cell.day}</span></span>`;
       }
 
       const markerState = getMarkerState(dayMarkers);
