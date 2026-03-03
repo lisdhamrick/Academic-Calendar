@@ -96,8 +96,8 @@ body {
   background: var(--panel);
   display: grid;
   grid-template-columns: repeat(4, minmax(190px, 1fr));
-  gap: 1rem;
-  padding: 0.9rem;
+  gap: 3rem;
+  padding: 1.5rem;
 }
 
 .month-card {
