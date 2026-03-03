@@ -422,7 +422,7 @@ body {
 
 #importantDates strong {
   font-size: 0.84rem;
-  color: #000000;
+  color: var(--ink);
   font-weight: 500;
   order: 1;
 }
@@ -528,6 +528,10 @@ body {
 
 .calendar-tooltip div + div {
   margin-top: 0.15rem;
+}
+
+.calendar-tooltip .tooltip-date {
+  color: var(--ink);
 }
 
 .legend {

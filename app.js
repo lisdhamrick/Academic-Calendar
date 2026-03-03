@@ -507,7 +507,12 @@ function positionTooltip(tooltip, anchorEl) {
 
 function showTooltip(tooltip, anchorEl, lines, accentColor = "#ffc000") {
   if (!lines || lines.length === 0) return;
-  tooltip.innerHTML = lines.map((line) => `<div>${line}</div>`).join("");
+  tooltip.innerHTML = lines
+    .map((line, index) => {
+      const klass = index % 2 === 0 ? "tooltip-date" : "tooltip-label";
+      return `<div class="${klass}">${line}</div>`;
+    })
+    .join("");
   tooltip.style.setProperty("--tooltip-accent", accentColor);
   tooltip.classList.add("is-visible");
   positionTooltip(tooltip, anchorEl);
@@ -866,9 +871,9 @@ function renderCalendar() {
         });
 
         if (matches.length === 1) {
-          showTooltip(tooltip, cell, [matches[0].label, matches[0].dateText], matches[0].accentColor);
+          showTooltip(tooltip, cell, [matches[0].dateText, matches[0].label], matches[0].accentColor);
         } else if (matches.length > 1) {
-          const lines = matches.flatMap((entry) => [entry.label, entry.dateText]);
+          const lines = matches.flatMap((entry) => [entry.dateText, entry.label]);
           showTooltip(tooltip, cell, lines, "#ffc000");
         }
       });
@@ -890,7 +895,7 @@ function renderCalendar() {
       highlightImportantEntry(entry);
       const firstDate = entry.highlightDates[0];
       const firstMatch = firstDate ? dayCellMap.get(firstDate)?.[0] : null;
-      if (firstMatch) showTooltip(tooltip, firstMatch, [entry.label, entry.dateText], entry.accentColor);
+      if (firstMatch) showTooltip(tooltip, firstMatch, [entry.dateText, entry.label], entry.accentColor);
     });
 
     item.addEventListener("mouseleave", () => {
