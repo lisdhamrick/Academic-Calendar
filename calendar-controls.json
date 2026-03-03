@@ -138,10 +138,54 @@
     }
   ],
   "gradingRanges": {
-    "gp6": [],
+    "gp6": [
+      {
+        "start": "2026-08-12",
+        "end": "2026-09-18"
+      },
+      {
+        "start": "2026-09-22",
+        "end": "2026-10-30"
+      },
+      {
+        "start": "2026-11-04",
+        "end": "2026-12-18"
+      }
+    ],
     "gp9": []
   },
-  "gradingMarkers": [],
+  "gradingMarkers": [
+    {
+      "type": "gp6",
+      "date": "2026-08-12",
+      "side": "start"
+    },
+    {
+      "type": "gp6",
+      "date": "2026-09-18",
+      "side": "end"
+    },
+    {
+      "type": "gp6",
+      "date": "2026-09-22",
+      "side": "start"
+    },
+    {
+      "type": "gp6",
+      "date": "2026-10-30",
+      "side": "end"
+    },
+    {
+      "type": "gp6",
+      "date": "2026-11-04",
+      "side": "start"
+    },
+    {
+      "type": "gp6",
+      "date": "2026-12-18",
+      "side": "end"
+    }
+  ],
   "importantDates": [
     {
       "label": "First Day of School",
