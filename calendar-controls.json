@@ -189,27 +189,79 @@
   "importantDates": [
     {
       "label": "First Day of School",
-      "dateText": "Aug. 12, 2026"
+      "dateText": "Aug. 12"
     },
     {
       "label": "Fall Break",
-      "dateText": "Nov. 23-27, 2026"
+      "dateText": "Nov. 23 - 27"
     },
     {
       "label": "Early Release",
-      "dateText": "Dec. 18, 2026"
+      "dateText": "Dec. 18"
     },
     {
       "label": "Winter Break",
-      "dateText": "Dec. 21, 2026-Jan. 1, 2027"
+      "dateText": "Dec. 21 - Jan. 1"
     },
     {
       "label": "Spring Break",
-      "dateText": "Mar. 15-19, 2027"
+      "dateText": "March 15-19"
     },
     {
       "label": "Last Day of School / Early Release",
-      "dateText": "May 27, 2027"
+      "dateText": "May 27"
+    },
+    {
+      "label": "Professional Learning",
+      "dateText": "Aug. 3 - 11"
+    },
+    {
+      "label": "Labor Day",
+      "dateText": "Sep. 7"
+    },
+    {
+      "label": "Professional Learning",
+      "dateText": "Sep. 21"
+    },
+    {
+      "label": "Parent-Teacher Conferences/Professional Learning",
+      "dateText": "Oct. 9"
+    },
+    {
+      "label": "Student/Staff Break",
+      "dateText": "Oct. 12-13"
+    },
+    {
+      "label": "Continuous Improvement Conference",
+      "dateText": "Nov. 2-3"
+    },
+    {
+      "label": "Professional Learning",
+      "dateText": "Jan. 4"
+    },
+    {
+      "label": "Martin Luther King Jr. Day",
+      "dateText": "Jan. 18"
+    },
+    {
+      "label": "Professional Learning",
+      "dateText": "Feb. 12"
+    },
+    {
+      "label": "Student/Staff Break",
+      "dateText": "Feb. 15-16"
+    },
+    {
+      "label": "Student/Staff Break",
+      "dateText": "March 26"
+    },
+    {
+      "label": "Professional Learning",
+      "dateText": "March 29"
+    },
+    {
+      "label": "Professional Learning",
+      "dateText": "April 26"
     }
   ]
 }
