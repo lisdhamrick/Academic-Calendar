@@ -8,7 +8,13 @@ const DEFAULT_EVENT_RULES = [
     end: "2026-08-11",
     weekdaysOnly: true
   },
-  { type: "firstLastDay", start: "2026-08-12", end: "2026-08-12", weekdaysOnly: true },
+  {
+    type: "firstLastDay",
+    start: "2026-08-12",
+    end: "2026-08-12",
+    weekdaysOnly: true,
+    name: "First Day of School"
+  },
   { type: "studentStaffHoliday", start: "2026-09-07", end: "2026-09-07", weekdaysOnly: true },
   {
     type: "teacherProfessionalLearning",
@@ -29,10 +35,27 @@ const DEFAULT_EVENT_RULES = [
     end: "2026-11-03",
     weekdaysOnly: true
   },
-  { type: "studentStaffHoliday", start: "2026-11-23", end: "2026-11-27", weekdaysOnly: true },
-  { type: "earlyRelease", start: "2026-12-18", end: "2026-12-18", weekdaysOnly: true },
-  { type: "studentStaffHoliday", start: "2026-12-21", end: "2026-12-31", weekdaysOnly: true },
-  { type: "studentStaffHoliday", start: "2027-01-01", end: "2027-01-01", weekdaysOnly: true },
+  {
+    type: "studentStaffHoliday",
+    start: "2026-11-23",
+    end: "2026-11-27",
+    weekdaysOnly: true,
+    name: "Fall Break"
+  },
+  {
+    type: "earlyRelease",
+    start: "2026-12-18",
+    end: "2026-12-18",
+    weekdaysOnly: true,
+    name: "Early Release"
+  },
+  {
+    type: "studentStaffHoliday",
+    start: "2026-12-21",
+    end: "2027-01-01",
+    weekdaysOnly: true,
+    name: "Winter Break"
+  },
   {
     type: "teacherProfessionalLearning",
     start: "2027-01-04",
@@ -47,7 +70,13 @@ const DEFAULT_EVENT_RULES = [
     weekdaysOnly: true
   },
   { type: "studentStaffHoliday", start: "2027-02-15", end: "2027-02-16", weekdaysOnly: true },
-  { type: "studentStaffHoliday", start: "2027-03-15", end: "2027-03-19", weekdaysOnly: true },
+  {
+    type: "studentStaffHoliday",
+    start: "2027-03-15",
+    end: "2027-03-19",
+    weekdaysOnly: true,
+    name: "Spring Break"
+  },
   { type: "studentStaffHoliday", start: "2027-03-26", end: "2027-03-26", weekdaysOnly: true },
   {
     type: "teacherProfessionalLearning",
@@ -61,7 +90,13 @@ const DEFAULT_EVENT_RULES = [
     end: "2027-04-26",
     weekdaysOnly: true
   },
-  { type: "earlyRelease", start: "2027-05-27", end: "2027-05-27", weekdaysOnly: true },
+  {
+    type: "earlyRelease",
+    start: "2027-05-27",
+    end: "2027-05-27",
+    weekdaysOnly: true,
+    name: "Last Day of School / Early Release"
+  },
   { type: "firstLastDay", start: "2027-05-27", end: "2027-05-27", weekdaysOnly: true }
 ];
 
@@ -115,6 +150,7 @@ const CALENDAR_CONFIG = {
     gp6: { label: "6-Week Grading Periods", className: "event-gp6" },
     gp9: { label: "9-Week Grading Periods", className: "event-gp9" }
   },
+  eventRules: DEFAULT_EVENT_RULES.map((rule) => ({ ...rule })),
   events: [],
   gradingMarkers: [],
   importantDates: DEFAULT_IMPORTANT_DATES.map((entry) => ({ ...entry }))
@@ -160,6 +196,25 @@ function expandEventRules(rules) {
   });
 
   return events;
+}
+
+function sanitizeEventRules(rules) {
+  return rules
+    .filter(
+      (rule) =>
+        rule &&
+        typeof rule.type === "string" &&
+        CALENDAR_CONFIG.eventTypes[rule.type] &&
+        typeof rule.start === "string" &&
+        rule.start
+    )
+    .map((rule) => ({
+      type: rule.type,
+      start: rule.start,
+      end: typeof rule.end === "string" && rule.end ? rule.end : rule.start,
+      weekdaysOnly: Boolean(rule.weekdaysOnly),
+      name: typeof rule.name === "string" ? rule.name.trim() : ""
+    }));
 }
 
 function sanitizeMarkers(markers) {
@@ -225,7 +280,8 @@ function applyControlData(data) {
   }
 
   if (Array.isArray(data.eventRules)) {
-    CALENDAR_CONFIG.events = expandEventRules(data.eventRules);
+    CALENDAR_CONFIG.eventRules = sanitizeEventRules(data.eventRules);
+    CALENDAR_CONFIG.events = expandEventRules(CALENDAR_CONFIG.eventRules);
   } else if (Array.isArray(data.events)) {
     CALENDAR_CONFIG.events = data.events
       .filter((event) => event && typeof event.date === "string" && CALENDAR_CONFIG.eventTypes[event.type])
@@ -257,6 +313,7 @@ async function loadSharedControls() {
 }
 
 function seedDefaultData() {
+  CALENDAR_CONFIG.eventRules = sanitizeEventRules(DEFAULT_EVENT_RULES);
   CALENDAR_CONFIG.events = expandEventRules(DEFAULT_EVENT_RULES);
   CALENDAR_CONFIG.gradingMarkers = DEFAULT_GRADING_MARKERS.map((marker) => ({ ...marker }));
 }
@@ -467,6 +524,64 @@ function formatTooltipDate(isoDate) {
   }).format(date);
 }
 
+function formatPanelDateRange(startISO, endISO) {
+  const start = parseISODate(startISO);
+  const end = parseISODate(endISO);
+  const shortMonth = new Intl.DateTimeFormat("en-US", { month: "short" });
+  const sMonth = `${shortMonth.format(start)}.`;
+  const eMonth = `${shortMonth.format(end)}.`;
+  const sDay = start.getDate();
+  const eDay = end.getDate();
+  const sYear = start.getFullYear();
+  const eYear = end.getFullYear();
+
+  if (startISO === endISO) return `${sMonth} ${sDay}, ${sYear}`;
+  if (sYear === eYear && start.getMonth() === end.getMonth()) {
+    return `${sMonth} ${sDay}-${eDay}, ${sYear}`;
+  }
+  if (sYear === eYear) {
+    return `${sMonth} ${sDay}-${eMonth} ${eDay}, ${sYear}`;
+  }
+  return `${sMonth} ${sDay}, ${sYear}-${eMonth} ${eDay}, ${eYear}`;
+}
+
+function isWeekendISO(isoDate) {
+  const day = parseISODate(isoDate).getDay();
+  return day === 0 || day === 6;
+}
+
+function buildNamedImportantFromEventRules(rules) {
+  const entries = [];
+  rules.forEach((rule, index) => {
+    const name = typeof rule.name === "string" ? rule.name.trim() : "";
+    if (!name || !rule.start) return;
+    const start = rule.start;
+    const end = rule.end || rule.start;
+    entries.push({
+      id: `ev-${index}`,
+      label: name,
+      dateText: formatPanelDateRange(start, end),
+      start,
+      end
+    });
+  });
+
+  entries.sort((a, b) => a.start.localeCompare(b.start));
+  return entries;
+}
+
+function buildFallbackImportantEntries(entries) {
+  return enrichAndSortImportantDates(entries)
+    .filter((entry) => entry.start)
+    .map((entry, index) => ({
+      id: `imp-${index}`,
+      label: entry.label,
+      dateText: entry.dateText,
+      start: entry.start,
+      end: entry.end
+    }));
+}
+
 function getCellVisualData(cell, eventLookup, markerLookup) {
   if (!cell || cell.type !== "day") return { hasVisual: false, signature: "" };
   const dayEvents = eventLookup[cell.key] || [];
@@ -505,8 +620,25 @@ function renderCalendar() {
   const monthFormatter = new Intl.DateTimeFormat("en-US", { month: "long" });
   const eventLookup = buildEventLookup(CALENDAR_CONFIG.events);
   const markerLookup = buildMarkerLookup(CALENDAR_CONFIG.gradingMarkers);
-  const sortedImportantDates = enrichAndSortImportantDates(CALENDAR_CONFIG.importantDates);
+  const namedImportant = buildNamedImportantFromEventRules(CALENDAR_CONFIG.eventRules);
+  const importantEntries =
+    namedImportant.length > 0 ? namedImportant : buildFallbackImportantEntries(CALENDAR_CONFIG.importantDates);
   const dayCellMap = new Map();
+
+  const importantById = new Map();
+  const dateToImportantIds = new Map();
+  importantEntries.forEach((entry) => {
+    const allDates = enumerateDateRange(entry.start, entry.end);
+    const highlightDates = allDates.filter(
+      (dateKey) => !isWeekendISO(dateKey) && (eventLookup[dateKey] || []).length > 0
+    );
+    const enriched = { ...entry, highlightDates };
+    importantById.set(entry.id, enriched);
+    highlightDates.forEach((dateKey) => {
+      if (!dateToImportantIds.has(dateKey)) dateToImportantIds.set(dateKey, []);
+      dateToImportantIds.get(dateKey).push(entry.id);
+    });
+  });
 
   for (let monthOffset = 0; monthOffset < CALENDAR_CONFIG.monthsToRender; monthOffset += 1) {
     const anchorDate = new Date(
@@ -669,9 +801,10 @@ function renderCalendar() {
     legend.appendChild(item);
   });
 
-  sortedImportantDates.forEach((entry) => {
+  importantEntries.forEach((entry) => {
     const li = document.createElement("li");
     li.className = "important-date-item";
+    li.dataset.importantId = entry.id;
     if (entry.start) li.dataset.start = entry.start;
     if (entry.end) li.dataset.end = entry.end || entry.start;
     li.innerHTML = `<strong>${entry.dateText}</strong><span>${entry.label}</span>`;
@@ -685,36 +818,34 @@ function renderCalendar() {
     importantItems.forEach((item) => item.classList.remove("is-related-highlight"));
   }
 
-  function highlightRange(start, end) {
-    if (!start || !end) return;
-    const inRange = enumerateDateRange(start, end);
-    inRange.forEach((key) => {
-      const cells = dayCellMap.get(key);
+  function highlightImportantEntry(entry) {
+    if (!entry) return;
+    entry.highlightDates.forEach((dateKey) => {
+      const cells = dayCellMap.get(dateKey);
       if (cells) cells.forEach((cell) => cell.classList.add("is-related-highlight"));
     });
   }
 
   dayCellMap.forEach((cells, dateKey) => {
+    const relatedIds = dateToImportantIds.get(dateKey) || [];
+    if (relatedIds.length === 0) return;
+
     cells.forEach((cell) => {
       cell.addEventListener("mouseenter", () => {
         clearHighlights();
-        cell.classList.add("is-related-highlight");
-        const matches = sortedImportantDates.filter((entry) => entry.start && dateKey >= entry.start && dateKey <= entry.end);
+        const matches = relatedIds
+          .map((id) => importantById.get(id))
+          .filter(Boolean);
+
         matches.forEach((entry) => {
+          highlightImportantEntry(entry);
           const matchItem = importantItems.find(
-            (item) => item.dataset.start === entry.start && item.dataset.end === entry.end
+            (item) => item.dataset.importantId === entry.id
           );
           if (matchItem) matchItem.classList.add("is-related-highlight");
         });
 
-        const eventNames = (eventLookup[dateKey] || [])
-          .map((type) => CALENDAR_CONFIG.eventTypes[type]?.label)
-          .filter(Boolean);
-        const lines = [
-          formatTooltipDate(dateKey),
-          ...eventNames,
-          ...matches.map((entry) => `${entry.label}: ${entry.dateText}`)
-        ];
+        const lines = matches.flatMap((entry) => [entry.label, entry.dateText]);
         if (lines.length > 0) showTooltip(tooltip, cell, lines);
       });
 
@@ -729,13 +860,13 @@ function renderCalendar() {
     item.addEventListener("mouseenter", () => {
       clearHighlights();
       item.classList.add("is-related-highlight");
-      const start = item.dataset.start;
-      const end = item.dataset.end || start;
-      if (start) {
-        highlightRange(start, end);
-        const firstMatch = dayCellMap.get(start)?.[0];
-        if (firstMatch) showTooltip(tooltip, firstMatch, [item.querySelector("span")?.textContent || "", item.querySelector("strong")?.textContent || ""]);
-      }
+      const entry = importantById.get(item.dataset.importantId || "");
+      if (!entry) return;
+
+      highlightImportantEntry(entry);
+      const firstDate = entry.highlightDates[0];
+      const firstMatch = firstDate ? dayCellMap.get(firstDate)?.[0] : null;
+      if (firstMatch) showTooltip(tooltip, firstMatch, [entry.label, entry.dateText]);
     });
 
     item.addEventListener("mouseleave", () => {

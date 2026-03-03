@@ -45,7 +45,11 @@ function groupEventRules(eventRules) {
   const groups = createEmptyEventGroups();
   (eventRules || []).forEach((rule) => {
     if (!rule || !groups[rule.type]) return;
-    groups[rule.type].push({ start: rule.start || "", end: rule.end || rule.start || "" });
+    groups[rule.type].push({
+      start: rule.start || "",
+      end: rule.end || rule.start || "",
+      name: typeof rule.name === "string" ? rule.name : ""
+    });
   });
   return groups;
 }
@@ -103,9 +107,40 @@ function flattenEventRules(eventGroups) {
         type,
         start: range.start,
         end: range.end || range.start,
-        weekdaysOnly: true
+        weekdaysOnly: true,
+        name: (range.name || "").trim()
       }))
   );
+}
+
+function formatPanelDateRange(startISO, endISO) {
+  const start = new Date(`${startISO}T00:00:00`);
+  const end = new Date(`${endISO}T00:00:00`);
+  const shortMonth = new Intl.DateTimeFormat("en-US", { month: "short" });
+  const sMonth = `${shortMonth.format(start)}.`;
+  const eMonth = `${shortMonth.format(end)}.`;
+  const sDay = start.getDate();
+  const eDay = end.getDate();
+  const sYear = start.getFullYear();
+  const eYear = end.getFullYear();
+
+  if (startISO === endISO) return `${sMonth} ${sDay}, ${sYear}`;
+  if (sYear === eYear && start.getMonth() === end.getMonth()) return `${sMonth} ${sDay}-${eDay}, ${sYear}`;
+  if (sYear === eYear) return `${sMonth} ${sDay}-${eMonth} ${eDay}, ${sYear}`;
+  return `${sMonth} ${sDay}, ${sYear}-${eMonth} ${eDay}, ${eYear}`;
+}
+
+function buildImportantDatesFromEventGroups(eventGroups) {
+  const rules = flattenEventRules(eventGroups);
+  return rules
+    .filter((rule) => rule.name)
+    .map((rule) => ({
+      label: rule.name,
+      dateText: formatPanelDateRange(rule.start, rule.end),
+      start: rule.start,
+      end: rule.end
+    }))
+    .sort((a, b) => a.start.localeCompare(b.start));
 }
 
 function loadGithubSettings() {
@@ -218,8 +253,7 @@ async function fetchSharedControls() {
         startMonth: 6,
         monthsToRender: 12,
         eventGroups: createEmptyEventGroups(),
-        gradingGroups: { gp6: [], gp9: [] },
-        importantDates: []
+        gradingGroups: { gp6: [], gp9: [] }
       };
     }
 
@@ -235,10 +269,7 @@ async function fetchSharedControls() {
         : {
             gp6: markersToRanges(data.gradingMarkers || [], "gp6"),
             gp9: markersToRanges(data.gradingMarkers || [], "gp9")
-          },
-      importantDates: Array.isArray(data.importantDates)
-        ? data.importantDates.map((entry) => ({ label: entry.label || "", dateText: entry.dateText || "" }))
-        : []
+          }
     };
   } catch {
     return {
@@ -247,8 +278,7 @@ async function fetchSharedControls() {
       startMonth: 6,
       monthsToRender: 12,
       eventGroups: createEmptyEventGroups(),
-      gradingGroups: { gp6: [], gp9: [] },
-      importantDates: []
+      gradingGroups: { gp6: [], gp9: [] }
     };
   }
 }
@@ -259,8 +289,7 @@ const state = {
   startMonth: 6,
   monthsToRender: 12,
   eventGroups: createEmptyEventGroups(),
-  gradingGroups: { gp6: [], gp9: [] },
-  importantDates: []
+  gradingGroups: { gp6: [], gp9: [] }
 };
 
 const githubSettings = loadGithubSettings();
@@ -271,7 +300,6 @@ const startMonthSelect = document.getElementById("startMonth");
 const monthsToRenderInput = document.getElementById("monthsToRender");
 const eventGroupsContainer = document.getElementById("eventGroups");
 const gradingGroupsContainer = document.getElementById("gradingGroups");
-const importantDatesBody = document.getElementById("importantDatesBody");
 const statusLine = document.getElementById("statusLine");
 const saveButton = document.getElementById("saveControls");
 
@@ -349,7 +377,7 @@ function renderEventGroups() {
     addBtn.className = "btn";
     addBtn.textContent = "Add Range";
     addBtn.addEventListener("click", () => {
-      ranges.push({ start: "", end: "" });
+      ranges.push({ start: "", end: "", name: "" });
       renderEventGroups();
       markDirty();
     });
@@ -360,6 +388,7 @@ function renderEventGroups() {
     table.innerHTML = `
       <thead>
         <tr>
+          <th>Name (Optional)</th>
           <th>Start</th>
           <th>End</th>
           <th>Action</th>
@@ -372,6 +401,15 @@ function renderEventGroups() {
 
     ranges.forEach((range, index) => {
       const row = document.createElement("tr");
+
+      const nameCell = document.createElement("td");
+      const nameInput = createInput("text", range.name);
+      nameInput.placeholder = "Important Date label";
+      nameInput.addEventListener("change", () => {
+        range.name = nameInput.value;
+        markDirty();
+      });
+      nameCell.appendChild(nameInput);
 
       const startCell = document.createElement("td");
       const startInput = createInput("date", range.start);
@@ -397,7 +435,7 @@ function renderEventGroups() {
         })
       );
 
-      row.append(startCell, endCell, actionCell);
+      row.append(nameCell, startCell, endCell, actionCell);
       tbody.appendChild(row);
     });
 
@@ -481,41 +519,6 @@ function renderGradingGroups() {
   });
 }
 
-function renderImportantDates() {
-  importantDatesBody.innerHTML = "";
-
-  state.importantDates.forEach((entry, index) => {
-    const row = document.createElement("tr");
-
-    const labelCell = document.createElement("td");
-    const labelInput = createInput("text", entry.label);
-    labelInput.addEventListener("change", () => {
-      entry.label = labelInput.value;
-      markDirty();
-    });
-    labelCell.appendChild(labelInput);
-
-    const dateTextCell = document.createElement("td");
-    const dateTextInput = createInput("text", entry.dateText);
-    dateTextInput.addEventListener("change", () => {
-      entry.dateText = dateTextInput.value;
-      markDirty();
-    });
-    dateTextCell.appendChild(dateTextInput);
-
-    const actionCell = document.createElement("td");
-    actionCell.appendChild(
-      createDeleteButton(() => {
-        state.importantDates.splice(index, 1);
-        renderImportantDates();
-      })
-    );
-
-    row.append(labelCell, dateTextCell, actionCell);
-    importantDatesBody.appendChild(row);
-  });
-}
-
 function renderAll() {
   schoolYearLabelInput.value = state.schoolYearLabel;
   startYearInput.value = state.startYear;
@@ -523,7 +526,6 @@ function renderAll() {
   monthsToRenderInput.value = state.monthsToRender;
   renderEventGroups();
   renderGradingGroups();
-  renderImportantDates();
 }
 
 function collectForm() {
@@ -538,7 +540,7 @@ function collectForm() {
       gp9: (state.gradingGroups.gp9 || []).filter((range) => range.start && range.end)
     },
     gradingMarkers: rangesToMarkers(state.gradingGroups),
-    importantDates: state.importantDates.filter((entry) => entry.label && entry.dateText)
+    importantDates: buildImportantDatesFromEventGroups(state.eventGroups)
   };
 }
 
@@ -566,12 +568,6 @@ schoolYearLabelInput.addEventListener("input", markDirty);
 startYearInput.addEventListener("input", markDirty);
 startMonthSelect.addEventListener("change", markDirty);
 monthsToRenderInput.addEventListener("input", markDirty);
-
-document.getElementById("addImportantDate").addEventListener("click", () => {
-  state.importantDates.push({ label: "", dateText: "" });
-  renderImportantDates();
-  markDirty();
-});
 
 document.getElementById("saveControls").addEventListener("click", async () => {
   githubSettings.owner = repoOwnerInput.value.trim();
@@ -615,7 +611,6 @@ document.getElementById("resetDefaults").addEventListener("click", async () => {
   state.monthsToRender = fresh.monthsToRender;
   state.eventGroups = deepClone(fresh.eventGroups || createEmptyEventGroups());
   state.gradingGroups = deepClone(fresh.gradingGroups || { gp6: [], gp9: [] });
-  state.importantDates = deepClone(fresh.importantDates || []);
   renderAll();
   isDirty = false;
   setStatus("Reloaded values from shared calendar-controls.json.");
@@ -624,7 +619,6 @@ document.getElementById("resetDefaults").addEventListener("click", async () => {
 document.getElementById("clearSaved").addEventListener("click", () => {
   state.eventGroups = createEmptyEventGroups();
   state.gradingGroups = { gp6: [], gp9: [] };
-  state.importantDates = [];
   renderAll();
   markDirty();
   setStatus("Cleared form values.", true);
@@ -639,6 +633,5 @@ fetchSharedControls().then((fresh) => {
   state.monthsToRender = fresh.monthsToRender;
   state.eventGroups = deepClone(fresh.eventGroups || createEmptyEventGroups());
   state.gradingGroups = deepClone(fresh.gradingGroups || { gp6: [], gp9: [] });
-  state.importantDates = deepClone(fresh.importantDates || []);
   renderAll();
 });
