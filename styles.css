@@ -476,20 +476,11 @@ body {
 
 .day-cell.is-related-highlight {
   z-index: 6;
-}
-
-.day-cell.is-related-highlight::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 0;
-  background: transparent;
   box-shadow:
     0 0 0 1px rgba(255, 192, 0, 0.5),
     0 0 10px rgba(255, 192, 0, 0.5),
     0 0 16px rgba(255, 192, 0, 0.28);
-  pointer-events: none;
-  z-index: 1;
+  overflow: visible;
 }
 
 .calendar-tooltip {
