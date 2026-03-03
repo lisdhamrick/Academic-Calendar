@@ -525,9 +525,26 @@ function hideTooltip(tooltip) {
 function formatPanelDateRange(startISO, endISO) {
   const start = parseISODate(startISO);
   const end = parseISODate(endISO);
-  const shortMonth = new Intl.DateTimeFormat("en-US", { month: "short" });
-  const sMonth = `${shortMonth.format(start)}.`;
-  const eMonth = `${shortMonth.format(end)}.`;
+  const apMonth = (date) => {
+    const month = new Intl.DateTimeFormat("en-US", { month: "long" }).format(date);
+    const map = {
+      January: "Jan.",
+      February: "Feb.",
+      March: "March",
+      April: "April",
+      May: "May",
+      June: "June",
+      July: "July",
+      August: "Aug.",
+      September: "Sept.",
+      October: "Oct.",
+      November: "Nov.",
+      December: "Dec."
+    };
+    return map[month] || month;
+  };
+  const sMonth = apMonth(start);
+  const eMonth = apMonth(end);
   const sDay = start.getDate();
   const eDay = end.getDate();
   const sYear = start.getFullYear();
@@ -535,12 +552,12 @@ function formatPanelDateRange(startISO, endISO) {
 
   if (startISO === endISO) return `${sMonth} ${sDay}, ${sYear}`;
   if (sYear === eYear && start.getMonth() === end.getMonth()) {
-    return `${sMonth} ${sDay}-${eDay}, ${sYear}`;
+    return `${sMonth} ${sDay} - ${eDay}, ${sYear}`;
   }
   if (sYear === eYear) {
-    return `${sMonth} ${sDay}-${eMonth} ${eDay}, ${sYear}`;
+    return `${sMonth} ${sDay} - ${eMonth} ${eDay}, ${sYear}`;
   }
-  return `${sMonth} ${sDay}, ${sYear}-${eMonth} ${eDay}, ${eYear}`;
+  return `${sMonth} ${sDay}, ${sYear} - ${eMonth} ${eDay}, ${eYear}`;
 }
 
 function isWeekendISO(isoDate) {
