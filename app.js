@@ -522,6 +522,48 @@ function hideTooltip(tooltip) {
   tooltip.classList.remove("is-visible");
 }
 
+function setupLegendDrawer() {
+  const fab = document.getElementById("legendFab");
+  const backdrop = document.getElementById("legendBackdrop");
+  if (!fab || !backdrop) return;
+  if (fab.dataset.initialized === "true") return;
+
+  const mobileQuery = window.matchMedia("(max-width: 620px)");
+
+  const setOpen = (open) => {
+    document.body.classList.toggle("legend-open", open && mobileQuery.matches);
+    fab.setAttribute("aria-expanded", open && mobileQuery.matches ? "true" : "false");
+    backdrop.setAttribute("aria-hidden", open && mobileQuery.matches ? "false" : "true");
+  };
+
+  const toggleOpen = () => {
+    const isOpen = document.body.classList.contains("legend-open");
+    setOpen(!isOpen);
+  };
+
+  fab.addEventListener("click", (event) => {
+    event.stopPropagation();
+    if (!mobileQuery.matches) return;
+    toggleOpen();
+  });
+
+  backdrop.addEventListener("click", () => {
+    setOpen(false);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    setOpen(false);
+  });
+
+  mobileQuery.addEventListener("change", (event) => {
+    if (!event.matches) setOpen(false);
+  });
+
+  fab.dataset.initialized = "true";
+  setOpen(false);
+}
+
 function formatPanelDateRange(startISO, endISO) {
   const start = parseISODate(startISO);
   const end = parseISODate(endISO);
@@ -968,4 +1010,5 @@ loadSharedControls()
   })
   .finally(() => {
     renderCalendar();
+    setupLegendDrawer();
   });
