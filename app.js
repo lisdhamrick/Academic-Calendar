@@ -502,6 +502,13 @@ function positionTooltip(tooltip, anchorEl) {
   left = Math.max(window.scrollX + 8, Math.min(left, window.scrollX + window.innerWidth - tooltipRect.width - 8));
   tooltip.style.top = `${top}px`;
   tooltip.style.left = `${left}px`;
+  const anchorCenterX = rect.left + window.scrollX + rect.width / 2;
+  const minArrowPad = 14;
+  const arrowX = Math.max(
+    minArrowPad,
+    Math.min(anchorCenterX - left, tooltipRect.width - minArrowPad)
+  );
+  tooltip.style.setProperty("--tooltip-arrow-x", `${arrowX}px`);
   tooltip.dataset.placement = placement;
 }
 

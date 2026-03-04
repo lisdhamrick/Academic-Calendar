@@ -78,6 +78,8 @@ body {
   font-family: var(--font-main);
   text-transform: uppercase;
   letter-spacing: 0.02em;
+  word-spacing: -0.4rem;
+  line-height: 1.1em;
   font-size: clamp(1.45rem, 2.6vw, 2.25rem);
 }
 
@@ -484,6 +486,7 @@ body {
 
 .calendar-tooltip {
   --tooltip-accent: #ffc000;
+  --tooltip-arrow-x: 50%;
   position: absolute;
   z-index: 40;
   pointer-events: none;
@@ -505,7 +508,7 @@ body {
 .calendar-tooltip::after {
   content: "";
   position: absolute;
-  left: 50%;
+  left: var(--tooltip-arrow-x);
   transform: translateX(-50%);
   width: 0;
   height: 0;
@@ -725,10 +728,10 @@ body {
   .info-panel {
     order: 2;
     background: var(--panel);
-    padding: 0.75rem 0.85rem;
+    padding: 0.75rem 0.6rem;
     gap: 0.6rem;
-    margin: 0.35rem 0.65rem 0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin: 0.35rem 0 0;
+    box-shadow: none;
   }
 
   .info-panel h2 {
