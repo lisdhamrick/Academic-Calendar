@@ -56,7 +56,7 @@ body {
   color: white;
   padding: 1.3rem 3rem;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   gap: 1rem;
 }
@@ -71,6 +71,18 @@ body {
   width: clamp(11rem, 24vw, 15rem);
   height: auto;
   display: block;
+}
+
+.icon-logo {
+  width: 5.2rem;
+  height: auto;
+  display: none;
+}
+
+.brand-text {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 1.8rem;
 }
 
 .app-header h1 {
@@ -88,8 +100,8 @@ body {
   font-family: var(--font-main);
   font-weight: 900;
   font-size: clamp(2rem, 5vw, 4rem);
-  color: var(--panel);
-  text-shadow: 1px 1px 0 #ffc000, 2px 2px 0 #ffc000, 3px 3px 0 #ffc000, 4px 4px 0 #ffc000;
+  color: var(--gold);
+  text-shadow: none;
 }
 
 .app-layout {
@@ -667,24 +679,31 @@ body {
   }
 
   .app-header {
-    flex-direction: column;
     align-items: center;
-    gap: 0.6rem;
-    text-align: center;
-    padding: 1rem 1.2rem 1.1rem;
+    justify-content: center;
+    padding: 1rem 1.2rem 1.15rem;
   }
 
   .brand-block {
-    flex-wrap: nowrap;
-    flex-direction: column;
-    gap: 0.45rem;
-    width: 100%;
-    justify-content: center;
+    gap: 0.9rem;
+    width: auto;
     align-items: center;
   }
 
   .district-logo {
-    width: 10rem;
+    display: none;
+  }
+
+  .icon-logo {
+    display: block;
+    width: 5.5rem;
+  }
+
+  .brand-text {
+    display: grid;
+    gap: 0.08rem;
+    text-align: left;
+    align-items: start;
   }
 
   .app-header h1 {
@@ -692,7 +711,7 @@ body {
   }
 
   .school-year {
-    font-size: clamp(2rem, 9.5vw, 2.8rem);
+    font-size: clamp(2.15rem, 10vw, 3.2rem);
     line-height: 1;
   }
 
