@@ -609,6 +609,14 @@ body {
 }
 
 @media (max-width: 1220px) {
+  :root {
+    --day-slot-h: 1.62rem;
+    --calendar-number-size: 0.95rem;
+    --marker-depth: 0.36rem;
+    --outer-col-slot: 1.5em;
+    --week-row-gap: 0.22rem;
+  }
+
   .calendar-app {
     display: flex;
     flex-direction: column;
@@ -637,6 +645,14 @@ body {
 }
 
 @media (max-width: 920px) {
+  :root {
+    --day-slot-h: 1.78rem;
+    --calendar-number-size: 1.02rem;
+    --marker-depth: 0.4rem;
+    --outer-col-slot: 1.58em;
+    --week-row-gap: 0.24rem;
+  }
+
   .app-header {
     flex-direction: column;
     align-items: flex-start;
@@ -653,6 +669,14 @@ body {
 }
 
 @media (max-width: 620px) {
+  :root {
+    --day-slot-h: 2rem;
+    --calendar-number-size: 1.08rem;
+    --marker-depth: 0.46rem;
+    --outer-col-slot: 1.72em;
+    --week-row-gap: 0.26rem;
+  }
+
   .calendar-app {
     padding-inline: 0.65rem;
   }
