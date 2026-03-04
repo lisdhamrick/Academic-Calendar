@@ -860,6 +860,30 @@ function renderCalendar() {
     importantItems.forEach((item) => item.classList.remove("is-related-highlight"));
   }
 
+  function getMatchesForDate(dateKey) {
+    const relatedIds = dateToImportantIds.get(dateKey) || [];
+    return relatedIds.map((id) => importantById.get(id)).filter(Boolean);
+  }
+
+  function applyHighlightAndTooltip(matches, anchorEl, highlightItemId = "") {
+    if (!matches || matches.length === 0 || !anchorEl) return;
+
+    matches.forEach((entry) => {
+      highlightImportantEntry(entry);
+      if (!highlightItemId || highlightItemId === entry.id) {
+        const matchItem = importantItems.find((item) => item.dataset.importantId === entry.id);
+        if (matchItem) matchItem.classList.add("is-related-highlight");
+      }
+    });
+
+    if (matches.length === 1) {
+      showTooltip(tooltip, anchorEl, [matches[0].dateText, matches[0].label], matches[0].accentColor);
+    } else {
+      const lines = matches.flatMap((entry) => [entry.dateText, entry.label]);
+      showTooltip(tooltip, anchorEl, lines, "#ffc000");
+    }
+  }
+
   function highlightImportantEntry(entry) {
     if (!entry) return;
     entry.highlightDates.forEach((dateKey) => {
@@ -869,35 +893,24 @@ function renderCalendar() {
   }
 
   dayCellMap.forEach((cells, dateKey) => {
-    const relatedIds = dateToImportantIds.get(dateKey) || [];
-    if (relatedIds.length === 0) return;
+    const matchesForDate = getMatchesForDate(dateKey);
+    if (matchesForDate.length === 0) return;
 
     cells.forEach((cell) => {
       cell.addEventListener("mouseenter", () => {
         clearHighlights();
-        const matches = relatedIds
-          .map((id) => importantById.get(id))
-          .filter(Boolean);
-
-        matches.forEach((entry) => {
-          highlightImportantEntry(entry);
-          const matchItem = importantItems.find(
-            (item) => item.dataset.importantId === entry.id
-          );
-          if (matchItem) matchItem.classList.add("is-related-highlight");
-        });
-
-        if (matches.length === 1) {
-          showTooltip(tooltip, cell, [matches[0].dateText, matches[0].label], matches[0].accentColor);
-        } else if (matches.length > 1) {
-          const lines = matches.flatMap((entry) => [entry.dateText, entry.label]);
-          showTooltip(tooltip, cell, lines, "#ffc000");
-        }
+        applyHighlightAndTooltip(matchesForDate, cell);
       });
 
       cell.addEventListener("mouseleave", () => {
         clearHighlights();
         hideTooltip(tooltip);
+      });
+
+      cell.addEventListener("click", (event) => {
+        event.stopPropagation();
+        clearHighlights();
+        applyHighlightAndTooltip(matchesForDate, cell);
       });
     });
   });
@@ -919,6 +932,32 @@ function renderCalendar() {
       clearHighlights();
       hideTooltip(tooltip);
     });
+
+    item.addEventListener("click", (event) => {
+      event.stopPropagation();
+      clearHighlights();
+      item.classList.add("is-related-highlight");
+      const entry = importantById.get(item.dataset.importantId || "");
+      if (!entry) return;
+      highlightImportantEntry(entry);
+      const firstDate = entry.highlightDates[0];
+      const firstMatch = firstDate ? dayCellMap.get(firstDate)?.[0] : null;
+      if (firstMatch) showTooltip(tooltip, firstMatch, [entry.dateText, entry.label], entry.accentColor);
+    });
+  });
+
+  document.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    if (target.closest(".day-cell") || target.closest(".important-date-item")) return;
+    clearHighlights();
+    hideTooltip(tooltip);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    clearHighlights();
+    hideTooltip(tooltip);
   });
 }
 
