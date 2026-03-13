@@ -16,22 +16,22 @@
   --gp6: #005987;
   --gp9: #ffc000;
   --staar: #005987;
-  --day-slot-h: clamp(1.4rem, 0.7vw + 1.1rem, 1.95rem);
-  --marker-depth: clamp(0.26rem, 0.22vw + 0.16rem, 0.5rem);
+  --day-slot-h: clamp(1.3rem, 0.18vw + 1.22rem, 1.48rem);
+  --marker-depth: clamp(0.24rem, 0.08vw + 0.22rem, 0.38rem);
   --marker-gap: 1px;
   --marker-stroke: 2px;
   --frame-stroke: 2px;
-  --calendar-number-size: clamp(0.78rem, 0.28vw + 0.62rem, 1rem);
+  --calendar-number-size: clamp(0.7rem, 0.08vw + 0.67rem, 0.82rem);
   --weekend-col-fr: 0.67fr;
   --outer-col-slot: 1.35em;
   --visual-boundary-gap: 0.16rem;
   --week-row-gap: 0.16rem;
   --panel-gap: 1rem;
-  --month-column-max: clamp(15rem, 18.5vw, 18.5rem);
-  --month-gap-x: clamp(1rem, 1.4vw, 2rem);
-  --month-gap-y: clamp(1.35rem, 1.9vw, 2.6rem);
-  --month-heading-size: clamp(1.15rem, 0.35vw + 1rem, 1.45rem);
-  --weekday-size: clamp(0.9rem, 0.22vw + 0.78rem, 1.1rem);
+  --month-column-max: clamp(14.6rem, 17.1vw, 17.3rem);
+  --month-gap-x: clamp(1.5rem, 1.9vw, 2.75rem);
+  --month-gap-y: clamp(1.45rem, 1.7vw, 2.2rem);
+  --month-heading-size: 1.2rem;
+  --weekday-size: clamp(0.92rem, 0.08vw + 0.9rem, 1rem);
   --info-panel-padding: 1.8rem 1.5rem 0.85rem;
   --info-heading-rule-pad: 0.6rem;
 }
@@ -531,6 +531,7 @@ body {
   align-self: start;
   position: sticky;
   top: var(--panel-gap);
+  height: min(calc(100vh - (var(--panel-gap) * 2)), 44rem);
   max-height: calc(100vh - (var(--panel-gap) * 2));
   overflow: hidden;
 }
@@ -1125,6 +1126,10 @@ body.embedded-wide.hide-info-panel .app-layout {
 
   .info-panel {
     order: 3;
+    position: static;
+    height: auto;
+    max-height: none;
+    overflow: visible;
   }
 
   .app-layout {
@@ -1256,6 +1261,7 @@ body.embedded-wide.hide-info-panel .app-layout {
     margin: 0.35rem 0 0;
     box-shadow: none;
     position: static;
+    height: auto;
     max-height: none;
     overflow: visible;
   }
