@@ -7,50 +7,65 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <main class="calendar-app">
-      <header class="app-header">
-        <div class="brand-block">
-          <img
-            class="district-logo"
-            src="./assets/district-logo.svg?v=20260304"
-            alt="Leander ISD logo"
-          />
-          <img
-            class="icon-logo"
-            src="./assets/icon-logo.svg?v=20260304"
-            alt=""
-            aria-hidden="true"
-          />
-          <div class="brand-text">
-            <h1>Academic Calendar</h1>
+    <div class="embed-controls" id="embedControls" aria-label="Embedded calendar controls">
+      <button class="embed-control-btn" id="toggleHeaderBtn" type="button" data-display-toggle="header">
+        Header
+      </button>
+      <button class="embed-control-btn" id="toggleDatesBtn" type="button" data-display-toggle="dates">
+        Important Dates
+      </button>
+      <a class="embed-control-btn embed-expand-link" id="expandViewLink" href="./" target="_blank" rel="noopener">
+        Expand
+      </a>
+    </div>
+
+    <div class="calendar-shell" id="calendarShell">
+      <main class="calendar-app" id="calendarApp">
+        <header class="app-header">
+          <div class="brand-block">
+            <img
+              class="district-logo"
+              src="./assets/district-logo.svg?v=20260304"
+              alt="Leander ISD logo"
+            />
+            <img
+              class="icon-logo"
+              src="./assets/icon-logo.svg?v=20260304"
+              alt=""
+              aria-hidden="true"
+            />
+            <div class="brand-text">
+              <h1>Academic Calendar</h1>
+            </div>
           </div>
+          <p class="school-year" id="schoolYearLabel"></p>
+        </header>
+        <section class="event-filters" id="eventFilters" aria-label="Calendar event filters"></section>
+
+        <div class="app-layout">
+          <section class="calendar-grid" id="calendarGrid" aria-label="Academic calendar months"></section>
+
+          <aside class="info-panel">
+            <section>
+              <h2>Important Dates</h2>
+              <ul id="importantDates"></ul>
+            </section>
+          </aside>
         </div>
-        <p class="school-year" id="schoolYearLabel"></p>
-      </header>
-      <section class="event-filters" id="eventFilters" aria-label="Calendar event filters"></section>
 
-      <div class="app-layout">
-        <section class="calendar-grid" id="calendarGrid" aria-label="Academic calendar months"></section>
-
-        <aside class="info-panel">
-          <section>
-            <h2>Important Dates</h2>
-            <ul id="importantDates"></ul>
-          </section>
-        </aside>
-      </div>
-
-      <section class="legend" id="legend"></section>
-    </main>
+        <section class="legend" id="legend"></section>
+      </main>
+    </div>
     <button
       class="legend-fab"
       id="legendFab"
       type="button"
-      aria-controls="legend"
+      aria-controls="eventFilters"
       aria-expanded="false"
-      aria-label="Toggle legend"
+      aria-label="Toggle filters"
     >
-      Key
+      <span class="legend-fab-icon" aria-hidden="true"></span>
+      <span class="legend-fab-label">Filters</span>
     </button>
     <div class="legend-backdrop" id="legendBackdrop" aria-hidden="true"></div>
 

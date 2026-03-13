@@ -156,9 +156,18 @@ const CALENDAR_CONFIG = {
   importantDates: DEFAULT_IMPORTANT_DATES.map((entry) => ({ ...entry }))
 };
 
+const EMBED_RATIO_BREAKPOINT = 4 / 3;
+const urlParams = new URLSearchParams(window.location.search);
+
 const FILTER_STATE = {
   visibleEventTypes: new Set(Object.keys(CALENDAR_CONFIG.eventTypes)),
-  showGradingMarkers: true
+  visibleMarkerTypes: new Set(Object.keys(CALENDAR_CONFIG.gradingMarkerTypes))
+};
+
+const DISPLAY_STATE = {
+  isEmbedded: parseBooleanParam(urlParams.get("embed"), window.self !== window.top),
+  showHeader: parseBooleanParam(urlParams.get("header"), true),
+  showImportantDates: parseBooleanParam(urlParams.get("dates"), true)
 };
 
 let activeCalendarUi = {
@@ -166,6 +175,14 @@ let activeCalendarUi = {
   hideTooltip: () => {}
 };
 let globalUiBindingsReady = false;
+
+function parseBooleanParam(value, fallback) {
+  if (value === null) return fallback;
+  const normalized = value.trim().toLowerCase();
+  if (["1", "true", "yes", "on", "show"].includes(normalized)) return true;
+  if (["0", "false", "no", "off", "hide"].includes(normalized)) return false;
+  return fallback;
+}
 
 function createDateKey(date) {
   return date.toISOString().slice(0, 10);
@@ -345,6 +362,57 @@ function buildMarkerLookup(markers) {
   }, {});
 }
 
+function buildStandaloneUrl() {
+  const standaloneUrl = new URL(window.location.href);
+  standaloneUrl.searchParams.delete("embed");
+  standaloneUrl.searchParams.delete("header");
+  standaloneUrl.searchParams.delete("dates");
+  return standaloneUrl.toString();
+}
+
+function applyDisplayState() {
+  document.body.classList.toggle("is-embedded", DISPLAY_STATE.isEmbedded);
+  document.body.classList.toggle("hide-header", !DISPLAY_STATE.showHeader);
+  document.body.classList.toggle("hide-info-panel", !DISPLAY_STATE.showImportantDates);
+
+  const expandViewLink = document.getElementById("expandViewLink");
+  if (expandViewLink) {
+    expandViewLink.href = buildStandaloneUrl();
+  }
+
+  const toggleHeaderBtn = document.getElementById("toggleHeaderBtn");
+  const toggleDatesBtn = document.getElementById("toggleDatesBtn");
+  if (toggleHeaderBtn) {
+    toggleHeaderBtn.classList.toggle("is-off", !DISPLAY_STATE.showHeader);
+    toggleHeaderBtn.setAttribute("aria-pressed", DISPLAY_STATE.showHeader ? "true" : "false");
+  }
+  if (toggleDatesBtn) {
+    toggleDatesBtn.classList.toggle("is-off", !DISPLAY_STATE.showImportantDates);
+    toggleDatesBtn.setAttribute("aria-pressed", DISPLAY_STATE.showImportantDates ? "true" : "false");
+  }
+}
+
+function setupEmbedControls() {
+  const embedControls = document.getElementById("embedControls");
+  if (!embedControls || embedControls.dataset.initialized === "true") return;
+
+  embedControls.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const button = target.closest("[data-display-toggle]");
+    if (!(button instanceof HTMLButtonElement)) return;
+
+    const toggle = button.dataset.displayToggle;
+    if (toggle === "header") DISPLAY_STATE.showHeader = !DISPLAY_STATE.showHeader;
+    if (toggle === "dates") DISPLAY_STATE.showImportantDates = !DISPLAY_STATE.showImportantDates;
+
+    applyDisplayState();
+    updateEmbeddedScale();
+  });
+
+  embedControls.dataset.initialized = "true";
+}
+
 function renderEventFilters() {
   const eventFilters = document.getElementById("eventFilters");
   if (!eventFilters) return;
@@ -358,12 +426,12 @@ function renderEventFilters() {
       label: config.label,
       className: config.className
     })),
-    {
-      kind: "grading",
-      type: "gradingPeriods",
-      label: "Grading Periods",
-      className: "filter-grading"
-    }
+    ...Object.entries(CALENDAR_CONFIG.gradingMarkerTypes).map(([type, config]) => ({
+      kind: "marker",
+      type,
+      label: config.label,
+      className: config.className
+    }))
   ];
 
   filters.forEach((filter) => {
@@ -372,8 +440,8 @@ function renderEventFilters() {
     button.className = "filter-chip";
 
     const isActive =
-      filter.kind === "grading"
-        ? FILTER_STATE.showGradingMarkers
+      filter.kind === "marker"
+        ? FILTER_STATE.visibleMarkerTypes.has(filter.type)
         : FILTER_STATE.visibleEventTypes.has(filter.type);
 
     if (!isActive) button.classList.add("is-off");
@@ -384,10 +452,11 @@ function renderEventFilters() {
     const swatch = document.createElement("span");
     swatch.className = `filter-chip-swatch ${filter.className}`;
 
-    if (filter.kind === "grading") {
+    if (filter.kind === "marker") {
+      swatch.classList.add("filter-chip-swatch-marker");
       swatch.innerHTML = `
-        <span class="filter-chip-marker filter-chip-marker-gp6"></span>
-        <span class="filter-chip-marker filter-chip-marker-gp9"></span>
+        <span class="filter-chip-marker-edge filter-chip-marker-start"></span>
+        <span class="filter-chip-marker-edge filter-chip-marker-end"></span>
       `;
     } else if (filter.type === "earlyRelease") {
       swatch.classList.add("filter-chip-swatch-er");
@@ -419,8 +488,12 @@ function setupEventFilters() {
     const filterKind = button.dataset.filterKind;
     const filterType = button.dataset.filterType;
 
-    if (filterKind === "grading") {
-      FILTER_STATE.showGradingMarkers = !FILTER_STATE.showGradingMarkers;
+    if (filterKind === "marker" && filterType && CALENDAR_CONFIG.gradingMarkerTypes[filterType]) {
+      if (FILTER_STATE.visibleMarkerTypes.has(filterType)) {
+        FILTER_STATE.visibleMarkerTypes.delete(filterType);
+      } else {
+        FILTER_STATE.visibleMarkerTypes.add(filterType);
+      }
     } else if (filterKind === "event" && filterType && CALENDAR_CONFIG.eventTypes[filterType]) {
       if (FILTER_STATE.visibleEventTypes.has(filterType)) {
         FILTER_STATE.visibleEventTypes.delete(filterType);
@@ -446,6 +519,7 @@ function bindGlobalUiHandlers() {
       target.closest(".day-cell") ||
       target.closest(".important-date-item") ||
       target.closest(".filter-chip") ||
+      target.closest(".embed-control-btn") ||
       target.closest(".legend-fab") ||
       target.closest(".legend")
     ) {
@@ -462,6 +536,34 @@ function bindGlobalUiHandlers() {
   });
 
   globalUiBindingsReady = true;
+}
+
+function updateEmbeddedScale() {
+  const calendarShell = document.getElementById("calendarShell");
+  const calendarApp = document.getElementById("calendarApp");
+  if (!calendarShell || !calendarApp) return;
+
+  document.body.classList.remove("embedded-wide");
+  calendarShell.classList.remove("is-scaled");
+  calendarShell.style.height = "";
+  calendarApp.style.width = "";
+  calendarApp.style.transform = "";
+
+  const viewportAspect = window.innerWidth / Math.max(window.innerHeight, 1);
+  if (!DISPLAY_STATE.isEmbedded || viewportAspect <= EMBED_RATIO_BREAKPOINT) return;
+
+  const baseWidth = DISPLAY_STATE.showImportantDates ? 1360 : 1040;
+  if (window.innerWidth >= baseWidth) return;
+
+  const scale = Math.max(0.7, window.innerWidth / baseWidth);
+  document.body.classList.add("embedded-wide");
+  calendarShell.classList.add("is-scaled");
+  calendarApp.style.width = `${baseWidth}px`;
+  calendarApp.style.transform = `scale(${scale})`;
+
+  requestAnimationFrame(() => {
+    calendarShell.style.height = `${calendarApp.scrollHeight * scale}px`;
+  });
 }
 
 function getMarkerState(dayMarkers) {
@@ -668,13 +770,13 @@ function setupLegendDrawer() {
   const mobileQuery = window.matchMedia("(max-width: 620px) and (max-aspect-ratio: 4/3)");
 
   const setOpen = (open) => {
-    document.body.classList.toggle("legend-open", open && mobileQuery.matches);
+    document.body.classList.toggle("filter-drawer-open", open && mobileQuery.matches);
     fab.setAttribute("aria-expanded", open && mobileQuery.matches ? "true" : "false");
     backdrop.setAttribute("aria-hidden", open && mobileQuery.matches ? "false" : "true");
   };
 
   const toggleOpen = () => {
-    const isOpen = document.body.classList.contains("legend-open");
+    const isOpen = document.body.classList.contains("filter-drawer-open");
     setOpen(!isOpen);
   };
 
@@ -842,7 +944,9 @@ function renderCalendar() {
   const filteredEvents = CALENDAR_CONFIG.events.filter((event) =>
     FILTER_STATE.visibleEventTypes.has(event.type)
   );
-  const filteredMarkers = FILTER_STATE.showGradingMarkers ? CALENDAR_CONFIG.gradingMarkers : [];
+  const filteredMarkers = CALENDAR_CONFIG.gradingMarkers.filter((marker) =>
+    FILTER_STATE.visibleMarkerTypes.has(marker.type)
+  );
   const filteredEventRules = CALENDAR_CONFIG.eventRules.filter((rule) =>
     FILTER_STATE.visibleEventTypes.has(rule.type)
   );
@@ -1015,25 +1119,23 @@ function renderCalendar() {
     legend.appendChild(item);
   });
 
-  if (FILTER_STATE.showGradingMarkers) {
-    Object.values(CALENDAR_CONFIG.gradingMarkerTypes).forEach((markerType) => {
-      const item = document.createElement("span");
-      item.className = "legend-item";
-      const markerCell = document.createElement("span");
-      markerCell.className = `legend-marker-cell legend-marker-${markerType.className}`;
+  Object.values(CALENDAR_CONFIG.gradingMarkerTypes).forEach((markerType) => {
+    const item = document.createElement("span");
+    item.className = "legend-item";
+    const markerCell = document.createElement("span");
+    markerCell.className = `legend-marker-cell legend-marker-${markerType.className}`;
 
-      const start = document.createElement("span");
-      start.className = "legend-marker-edge legend-marker-start";
-      const end = document.createElement("span");
-      end.className = "legend-marker-edge legend-marker-end";
+    const start = document.createElement("span");
+    start.className = "legend-marker-edge legend-marker-start";
+    const end = document.createElement("span");
+    end.className = "legend-marker-edge legend-marker-end";
 
-      markerCell.appendChild(start);
-      markerCell.appendChild(end);
-      item.appendChild(markerCell);
-      item.append(` ${markerType.label}`);
-      legend.appendChild(item);
-    });
-  }
+    markerCell.appendChild(start);
+    markerCell.appendChild(end);
+    item.appendChild(markerCell);
+    item.append(` ${markerType.label}`);
+    legend.appendChild(item);
+  });
 
   importantEntries.forEach((entry) => {
     const li = document.createElement("li");
@@ -1143,6 +1245,8 @@ function renderCalendar() {
     clearHighlights,
     hideTooltip: () => hideTooltip(tooltip)
   };
+
+  updateEmbeddedScale();
 }
 
 seedDefaultData();
@@ -1151,9 +1255,12 @@ loadSharedControls()
     applyControlData(data);
   })
   .finally(() => {
+    applyDisplayState();
     renderEventFilters();
+    setupEmbedControls();
     setupEventFilters();
     bindGlobalUiHandlers();
     renderCalendar();
     setupLegendDrawer();
+    window.addEventListener("resize", updateEmbeddedScale);
   });
