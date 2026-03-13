@@ -156,6 +156,17 @@ const CALENDAR_CONFIG = {
   importantDates: DEFAULT_IMPORTANT_DATES.map((entry) => ({ ...entry }))
 };
 
+const FILTER_STATE = {
+  visibleEventTypes: new Set(Object.keys(CALENDAR_CONFIG.eventTypes)),
+  showGradingMarkers: true
+};
+
+let activeCalendarUi = {
+  clearHighlights: () => {},
+  hideTooltip: () => {}
+};
+let globalUiBindingsReady = false;
+
 function createDateKey(date) {
   return date.toISOString().slice(0, 10);
 }
@@ -332,6 +343,125 @@ function buildMarkerLookup(markers) {
     lookup[marker.date].push(marker);
     return lookup;
   }, {});
+}
+
+function renderEventFilters() {
+  const eventFilters = document.getElementById("eventFilters");
+  if (!eventFilters) return;
+
+  eventFilters.innerHTML = "";
+
+  const filters = [
+    ...Object.entries(CALENDAR_CONFIG.eventTypes).map(([type, config]) => ({
+      kind: "event",
+      type,
+      label: config.label,
+      className: config.className
+    })),
+    {
+      kind: "grading",
+      type: "gradingPeriods",
+      label: "Grading Periods",
+      className: "filter-grading"
+    }
+  ];
+
+  filters.forEach((filter) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "filter-chip";
+
+    const isActive =
+      filter.kind === "grading"
+        ? FILTER_STATE.showGradingMarkers
+        : FILTER_STATE.visibleEventTypes.has(filter.type);
+
+    if (!isActive) button.classList.add("is-off");
+    button.setAttribute("aria-pressed", isActive ? "true" : "false");
+    button.dataset.filterKind = filter.kind;
+    button.dataset.filterType = filter.type;
+
+    const swatch = document.createElement("span");
+    swatch.className = `filter-chip-swatch ${filter.className}`;
+
+    if (filter.kind === "grading") {
+      swatch.innerHTML = `
+        <span class="filter-chip-marker filter-chip-marker-gp6"></span>
+        <span class="filter-chip-marker filter-chip-marker-gp9"></span>
+      `;
+    } else if (filter.type === "earlyRelease") {
+      swatch.classList.add("filter-chip-swatch-er");
+      swatch.textContent = "ER";
+    } else if (filter.type === "firstLastDay") {
+      swatch.classList.add("filter-chip-swatch-frame");
+    }
+
+    const label = document.createElement("span");
+    label.className = "filter-chip-label";
+    label.textContent = filter.label;
+
+    button.appendChild(swatch);
+    button.appendChild(label);
+    eventFilters.appendChild(button);
+  });
+}
+
+function setupEventFilters() {
+  const eventFilters = document.getElementById("eventFilters");
+  if (!eventFilters || eventFilters.dataset.initialized === "true") return;
+
+  eventFilters.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const button = target.closest(".filter-chip");
+    if (!(button instanceof HTMLButtonElement)) return;
+
+    const filterKind = button.dataset.filterKind;
+    const filterType = button.dataset.filterType;
+
+    if (filterKind === "grading") {
+      FILTER_STATE.showGradingMarkers = !FILTER_STATE.showGradingMarkers;
+    } else if (filterKind === "event" && filterType && CALENDAR_CONFIG.eventTypes[filterType]) {
+      if (FILTER_STATE.visibleEventTypes.has(filterType)) {
+        FILTER_STATE.visibleEventTypes.delete(filterType);
+      } else {
+        FILTER_STATE.visibleEventTypes.add(filterType);
+      }
+    }
+
+    renderEventFilters();
+    renderCalendar();
+  });
+
+  eventFilters.dataset.initialized = "true";
+}
+
+function bindGlobalUiHandlers() {
+  if (globalUiBindingsReady) return;
+
+  document.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    if (
+      target.closest(".day-cell") ||
+      target.closest(".important-date-item") ||
+      target.closest(".filter-chip") ||
+      target.closest(".legend-fab") ||
+      target.closest(".legend")
+    ) {
+      return;
+    }
+    activeCalendarUi.clearHighlights();
+    activeCalendarUi.hideTooltip();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    activeCalendarUi.clearHighlights();
+    activeCalendarUi.hideTooltip();
+  });
+
+  globalUiBindingsReady = true;
 }
 
 function getMarkerState(dayMarkers) {
@@ -535,7 +665,7 @@ function setupLegendDrawer() {
   if (!fab || !backdrop) return;
   if (fab.dataset.initialized === "true") return;
 
-  const mobileQuery = window.matchMedia("(max-width: 620px)");
+  const mobileQuery = window.matchMedia("(max-width: 620px) and (max-aspect-ratio: 4/3)");
 
   const setOpen = (open) => {
     document.body.classList.toggle("legend-open", open && mobileQuery.matches);
@@ -700,6 +830,7 @@ function renderCalendar() {
   const legend = document.getElementById("legend");
   const importantDates = document.getElementById("importantDates");
   const tooltip = createCalendarTooltip();
+  hideTooltip(tooltip);
 
   calendarGrid.innerHTML = "";
   legend.innerHTML = "";
@@ -708,11 +839,22 @@ function renderCalendar() {
   schoolYearLabel.textContent = CALENDAR_CONFIG.schoolYearLabel;
 
   const monthFormatter = new Intl.DateTimeFormat("en-US", { month: "long" });
-  const eventLookup = buildEventLookup(CALENDAR_CONFIG.events);
-  const markerLookup = buildMarkerLookup(CALENDAR_CONFIG.gradingMarkers);
-  const namedImportant = buildNamedImportantFromEventRules(CALENDAR_CONFIG.eventRules);
-  const importantEntries =
-    namedImportant.length > 0 ? namedImportant : buildFallbackImportantEntries(CALENDAR_CONFIG.importantDates);
+  const filteredEvents = CALENDAR_CONFIG.events.filter((event) =>
+    FILTER_STATE.visibleEventTypes.has(event.type)
+  );
+  const filteredMarkers = FILTER_STATE.showGradingMarkers ? CALENDAR_CONFIG.gradingMarkers : [];
+  const filteredEventRules = CALENDAR_CONFIG.eventRules.filter((rule) =>
+    FILTER_STATE.visibleEventTypes.has(rule.type)
+  );
+  const eventLookup = buildEventLookup(filteredEvents);
+  const markerLookup = buildMarkerLookup(filteredMarkers);
+  const namedImportant = buildNamedImportantFromEventRules(filteredEventRules);
+  const hasNamedImportantSource = CALENDAR_CONFIG.eventRules.some(
+    (rule) => typeof rule.name === "string" && rule.name.trim()
+  );
+  const importantEntries = hasNamedImportantSource
+    ? namedImportant
+    : buildFallbackImportantEntries(CALENDAR_CONFIG.importantDates);
   const dayCellMap = new Map();
 
   const importantById = new Map();
@@ -873,23 +1015,25 @@ function renderCalendar() {
     legend.appendChild(item);
   });
 
-  Object.values(CALENDAR_CONFIG.gradingMarkerTypes).forEach((markerType) => {
-    const item = document.createElement("span");
-    item.className = "legend-item";
-    const markerCell = document.createElement("span");
-    markerCell.className = `legend-marker-cell legend-marker-${markerType.className}`;
+  if (FILTER_STATE.showGradingMarkers) {
+    Object.values(CALENDAR_CONFIG.gradingMarkerTypes).forEach((markerType) => {
+      const item = document.createElement("span");
+      item.className = "legend-item";
+      const markerCell = document.createElement("span");
+      markerCell.className = `legend-marker-cell legend-marker-${markerType.className}`;
 
-    const start = document.createElement("span");
-    start.className = "legend-marker-edge legend-marker-start";
-    const end = document.createElement("span");
-    end.className = "legend-marker-edge legend-marker-end";
+      const start = document.createElement("span");
+      start.className = "legend-marker-edge legend-marker-start";
+      const end = document.createElement("span");
+      end.className = "legend-marker-edge legend-marker-end";
 
-    markerCell.appendChild(start);
-    markerCell.appendChild(end);
-    item.appendChild(markerCell);
-    item.append(` ${markerType.label}`);
-    legend.appendChild(item);
-  });
+      markerCell.appendChild(start);
+      markerCell.appendChild(end);
+      item.appendChild(markerCell);
+      item.append(` ${markerType.label}`);
+      legend.appendChild(item);
+    });
+  }
 
   importantEntries.forEach((entry) => {
     const li = document.createElement("li");
@@ -995,19 +1139,10 @@ function renderCalendar() {
     });
   });
 
-  document.addEventListener("click", (event) => {
-    const target = event.target;
-    if (!(target instanceof Element)) return;
-    if (target.closest(".day-cell") || target.closest(".important-date-item")) return;
-    clearHighlights();
-    hideTooltip(tooltip);
-  });
-
-  document.addEventListener("keydown", (event) => {
-    if (event.key !== "Escape") return;
-    clearHighlights();
-    hideTooltip(tooltip);
-  });
+  activeCalendarUi = {
+    clearHighlights,
+    hideTooltip: () => hideTooltip(tooltip)
+  };
 }
 
 seedDefaultData();
@@ -1016,6 +1151,9 @@ loadSharedControls()
     applyControlData(data);
   })
   .finally(() => {
+    renderEventFilters();
+    setupEventFilters();
+    bindGlobalUiHandlers();
     renderCalendar();
     setupLegendDrawer();
   });
