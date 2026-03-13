@@ -379,38 +379,6 @@ function applyDisplayState() {
   if (expandViewLink) {
     expandViewLink.href = buildStandaloneUrl();
   }
-
-  const toggleHeaderBtn = document.getElementById("toggleHeaderBtn");
-  const toggleDatesBtn = document.getElementById("toggleDatesBtn");
-  if (toggleHeaderBtn) {
-    toggleHeaderBtn.classList.toggle("is-off", !DISPLAY_STATE.showHeader);
-    toggleHeaderBtn.setAttribute("aria-pressed", DISPLAY_STATE.showHeader ? "true" : "false");
-  }
-  if (toggleDatesBtn) {
-    toggleDatesBtn.classList.toggle("is-off", !DISPLAY_STATE.showImportantDates);
-    toggleDatesBtn.setAttribute("aria-pressed", DISPLAY_STATE.showImportantDates ? "true" : "false");
-  }
-}
-
-function setupEmbedControls() {
-  const embedControls = document.getElementById("embedControls");
-  if (!embedControls || embedControls.dataset.initialized === "true") return;
-
-  embedControls.addEventListener("click", (event) => {
-    const target = event.target;
-    if (!(target instanceof Element)) return;
-    const button = target.closest("[data-display-toggle]");
-    if (!(button instanceof HTMLButtonElement)) return;
-
-    const toggle = button.dataset.displayToggle;
-    if (toggle === "header") DISPLAY_STATE.showHeader = !DISPLAY_STATE.showHeader;
-    if (toggle === "dates") DISPLAY_STATE.showImportantDates = !DISPLAY_STATE.showImportantDates;
-
-    applyDisplayState();
-    updateEmbeddedScale();
-  });
-
-  embedControls.dataset.initialized = "true";
 }
 
 function renderEventFilters() {
@@ -1257,7 +1225,6 @@ loadSharedControls()
   .finally(() => {
     applyDisplayState();
     renderEventFilters();
-    setupEmbedControls();
     setupEventFilters();
     bindGlobalUiHandlers();
     renderCalendar();

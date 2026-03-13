@@ -8,14 +8,16 @@
   </head>
   <body>
     <div class="embed-controls" id="embedControls" aria-label="Embedded calendar controls">
-      <button class="embed-control-btn" id="toggleHeaderBtn" type="button" data-display-toggle="header">
-        Header
-      </button>
-      <button class="embed-control-btn" id="toggleDatesBtn" type="button" data-display-toggle="dates">
-        Important Dates
-      </button>
-      <a class="embed-control-btn embed-expand-link" id="expandViewLink" href="./" target="_blank" rel="noopener">
-        Expand
+      <a
+        class="embed-control-btn embed-expand-link"
+        id="expandViewLink"
+        href="./"
+        target="_blank"
+        rel="noopener"
+        aria-label="Open full-screen calendar"
+        title="Open full-screen calendar"
+      >
+        <span class="embed-expand-icon" aria-hidden="true"></span>
       </a>
     </div>
 
