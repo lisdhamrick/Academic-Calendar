@@ -56,16 +56,16 @@ body {
   color: white;
   padding: 1.3rem 3rem;
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
-  gap: 0;
+  gap: 1.25rem;
 }
 
 .brand-block {
-  width: 100%;
   display: flex;
   align-items: center;
   gap: 2.1rem;
+  min-width: 0;
 }
 
 .district-logo {
@@ -81,9 +81,9 @@ body {
 }
 
 .brand-text {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 1.8rem;
+  min-width: 0;
 }
 
 .app-header h1 {
@@ -93,7 +93,7 @@ body {
   letter-spacing: 0.02em;
   word-spacing: -0.4rem;
   line-height: 1.1em;
-  font-size: clamp(1.45rem, 2.6vw, 2.25rem);
+  font-size: clamp(1.25rem, 2.1vw, 1.95rem);
   white-space: nowrap;
 }
 
@@ -104,6 +104,8 @@ body {
   font-size: clamp(2rem, 5vw, 4rem);
   color: var(--gold);
   text-shadow: none;
+  line-height: 1;
+  flex: 0 0 auto;
 }
 
 .app-layout {
@@ -554,6 +556,7 @@ body {
 }
 
 .legend {
+  margin-top: 1rem;
   background: var(--panel);
   padding: 0.8rem;
   display: grid;
@@ -681,18 +684,18 @@ body {
   }
 
   .app-header {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
     align-items: center;
-    justify-content: center;
+    justify-content: stretch;
     padding: 1rem 1.2rem 1.15rem;
+    gap: 0.9rem 0.9rem;
   }
 
   .brand-block {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 0.9rem;
-    width: 100%;
+    display: contents;
+    width: auto;
     align-items: center;
-    justify-content: stretch;
   }
 
   .district-logo {
@@ -702,26 +705,32 @@ body {
   .icon-logo {
     display: block;
     width: clamp(3.4rem, 14vw, 5.5rem);
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    align-self: center;
   }
 
   .brand-text {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0.06rem;
-    text-align: left;
-    align-items: start;
+    display: block;
     width: 100%;
     min-width: 0;
+    grid-column: 2;
+    grid-row: 1;
+    align-self: end;
   }
 
   .app-header h1 {
     font-size: clamp(1.05rem, 5.8vw, 2.2rem);
     max-width: 100%;
+    text-align: left;
   }
 
   .school-year {
     font-size: clamp(1.05rem, 5.8vw, 2.2rem);
     line-height: 1;
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: start;
   }
 
   .calendar-grid {
