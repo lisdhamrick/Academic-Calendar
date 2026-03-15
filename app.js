@@ -170,6 +170,9 @@ const DISPLAY_STATE = {
   showImportantDates: parseBooleanParam(urlParams.get("dates"), true)
 };
 
+const STACKED_LAYOUT_QUERY = window.matchMedia("(max-width: 1220px) and (max-aspect-ratio: 4/3)");
+const MOBILE_FILTER_DRAWER_QUERY = window.matchMedia("(max-width: 620px) and (max-aspect-ratio: 4/3)");
+
 let activeCalendarUi = {
   clearHighlights: () => {},
   hideTooltip: () => {}
@@ -435,12 +438,72 @@ function renderEventFilters() {
 
     const label = document.createElement("span");
     label.className = "filter-chip-label";
-    label.textContent = filter.label;
+    label.textContent =
+      filter.type === "teacherProfessionalLearning" ? "Prof. Learning/No School" : filter.label;
 
     button.appendChild(swatch);
     button.appendChild(label);
     eventFilters.appendChild(button);
   });
+}
+
+function balanceEventFilters() {
+  const eventFilters = document.getElementById("eventFilters");
+  if (!eventFilters) return;
+
+  if (MOBILE_FILTER_DRAWER_QUERY.matches) {
+    eventFilters.style.gridTemplateColumns = "1fr";
+    return;
+  }
+
+  const count = eventFilters.children.length;
+  if (count === 0) {
+    eventFilters.style.removeProperty("grid-template-columns");
+    return;
+  }
+
+  const width = eventFilters.clientWidth;
+  if (!width) return;
+
+  const minChipWidth = 245;
+  const maxCols = Math.max(1, Math.min(count, Math.floor(width / minChipWidth)));
+
+  let bestCols = 1;
+  let bestScore = Number.POSITIVE_INFINITY;
+
+  for (let cols = 1; cols <= maxCols; cols += 1) {
+    const rows = Math.ceil(count / cols);
+    const lastRowCount = count - (rows - 1) * cols;
+    const orphanPenalty = lastRowCount === 1 && count > 1 ? 100 : 0;
+    const balancePenalty = Math.abs(cols - lastRowCount);
+    const rowPenalty = rows * 0.1;
+    const score = orphanPenalty + balancePenalty + rowPenalty;
+
+    if (score < bestScore) {
+      bestScore = score;
+      bestCols = cols;
+    }
+  }
+
+  eventFilters.style.gridTemplateColumns = `repeat(${bestCols}, minmax(0, 1fr))`;
+}
+
+function syncInfoPanelHeight() {
+  const calendarGrid = document.getElementById("calendarGrid");
+  const infoPanel = document.querySelector(".info-panel");
+  if (!(calendarGrid instanceof HTMLElement) || !(infoPanel instanceof HTMLElement)) return;
+
+  if (!DISPLAY_STATE.showImportantDates || STACKED_LAYOUT_QUERY.matches) {
+    infoPanel.style.removeProperty("height");
+    infoPanel.style.removeProperty("max-height");
+    return;
+  }
+
+  const calendarHeight = Math.ceil(calendarGrid.getBoundingClientRect().height);
+  if (!calendarHeight) return;
+
+  infoPanel.style.height = `${calendarHeight}px`;
+  infoPanel.style.maxHeight = `${calendarHeight}px`;
 }
 
 function setupEventFilters() {
@@ -1214,6 +1277,8 @@ function renderCalendar() {
     hideTooltip: () => hideTooltip(tooltip)
   };
 
+  balanceEventFilters();
+  syncInfoPanelHeight();
   updateEmbeddedScale();
 }
 
@@ -1229,5 +1294,9 @@ loadSharedControls()
     bindGlobalUiHandlers();
     renderCalendar();
     setupLegendDrawer();
-    window.addEventListener("resize", updateEmbeddedScale);
+    window.addEventListener("resize", () => {
+      balanceEventFilters();
+      syncInfoPanelHeight();
+      updateEmbeddedScale();
+    });
   });
