@@ -598,7 +598,8 @@ body.hide-info-panel .app-layout {
 }
 
 #importantDates strong {
-  font-size: 0.84rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
   color: var(--ink);
   font-weight: 500;
   order: 1;
