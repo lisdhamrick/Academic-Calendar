@@ -677,7 +677,7 @@ body.hide-info-panel .app-layout {
   border-radius: 0;
   padding: 0.45rem 0.6rem;
   box-shadow: 0 6px 18px rgba(8, 32, 56, 0.22);
-  font-size: 0.76rem;
+  font-size: 0.8rem;
   line-height: 1.35;
   max-width: 260px;
 }
@@ -714,6 +714,8 @@ body.hide-info-panel .app-layout {
 
 .calendar-tooltip .tooltip-date {
   color: var(--ink);
+  font-size: 0.7rem;
+  text-transform: uppercase;
 }
 
 .legend {
