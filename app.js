@@ -164,7 +164,9 @@ const DESKTOP_LANGUAGE_CONTROL_QUERY = window.matchMedia("(min-width: 621px), (m
 const TRANSLATIONS = {
   en: {
     htmlLang: "en",
-    languageToggleLabel: "Idioma",
+    languageToggleLabel: "English",
+    languageButtonEnglish: "English",
+    languageButtonSpanish: "Español",
     appTitle: "Academic Calendar",
     fullScreenLabel: "Open full-screen calendar",
     embedControlsLabel: "Embedded calendar controls",
@@ -213,49 +215,51 @@ const TRANSLATIONS = {
   },
   es: {
     htmlLang: "es",
-    languageToggleLabel: "Idioma",
-    appTitle: "Calendario academico",
+    languageToggleLabel: "Español",
+    languageButtonEnglish: "English",
+    languageButtonSpanish: "Español",
+    appTitle: "Calendario académico",
     fullScreenLabel: "Abrir calendario en pantalla completa",
     embedControlsLabel: "Controles del calendario incrustado",
     eventFiltersLabel: "Filtros de eventos del calendario",
-    monthsLabel: "Meses del calendario academico",
+    monthsLabel: "Meses del calendario académico",
     importantDatesHeading: "Fechas importantes",
     filterFabLabel: "Filtros",
     filterFabAriaLabel: "Mostrar u ocultar filtros",
     languageSelectorAriaLabel: "Selector de idioma",
     districtLogoAlt: "Logotipo de Leander ISD",
-    professionalLearningCompact: "Capacitacion/Sin clases",
+    professionalLearningCompact: "Aprendizaje prof./Sin clases",
     earlyReleaseBadge: "SR",
     weekdayInitials: ["D", "L", "M", "M", "J", "V", "S"],
     eventNames: {
-      newTeacherTraining: "Capacitacion para maestros nuevos",
-      teacherProfessionalLearning: "Capacitacion profesional del personal",
+      newTeacherTraining: "Capacitación para maestros nuevos",
+      teacherProfessionalLearning: "Aprendizaje profesional del personal",
       studentStaffHoliday: "Feriado para estudiantes y personal",
       earlyRelease: "Salida temprana",
-      firstLastDay: "Primer / ultimo dia de clases",
+      firstLastDay: "Primer / último día de clases",
       proposedStaar: "Pruebas STAAR propuestas",
-      gp6: "Periodos de calificacion de 6 semanas",
-      gp9: "Periodos de calificacion de 9 semanas"
+      gp6: "Períodos de calificación de 6 semanas",
+      gp9: "Períodos de calificación de 9 semanas"
     },
     phraseTranslations: {
-      "New Teacher Training": "Capacitacion para maestros nuevos",
-      "Professional Learning": "Capacitacion profesional",
+      "New Teacher Training": "Capacitación para maestros nuevos",
+      "Professional Learning": "Aprendizaje profesional",
       "Parent-Teacher Conferences/Professional Learning":
-        "Conferencias de padres y maestros/Capacitacion profesional",
+        "Conferencias de padres y maestros/Aprendizaje profesional",
       "Continuous Improvement Conference": "Conferencia de mejora continua",
-      "Labor Day": "Dia del Trabajo",
+      "Labor Day": "Día del Trabajo",
       "Student/Staff Break": "Descanso para estudiantes y personal",
-      "Fall Break": "Vacaciones de otono",
+      "Fall Break": "Vacaciones de otoño",
       "Winter Break": "Vacaciones de invierno",
       "Spring Break": "Vacaciones de primavera",
-      "Martin Luther King Jr. Day": "Dia de Martin Luther King Jr.",
-      "Marin Luther King Jr. Day": "Dia de Martin Luther King Jr.",
-      "First Day of School": "Primer dia de clases",
-      "Last Day of School/Early Release": "Ultimo dia de clases/Salida temprana",
-      "Last Day of School / Early Release": "Ultimo dia de clases / Salida temprana",
-      "Teacher Professional Learning": "Capacitacion profesional del personal",
+      "Martin Luther King Jr. Day": "Día de Martin Luther King Jr.",
+      "Marin Luther King Jr. Day": "Día de Martin Luther King Jr.",
+      "First Day of School": "Primer día de clases",
+      "Last Day of School/Early Release": "Último día de clases/Salida temprana",
+      "Last Day of School / Early Release": "Último día de clases / Salida temprana",
+      "Teacher Professional Learning": "Aprendizaje profesional del personal",
       "Student / Staff Holiday": "Feriado para estudiantes y personal",
-      "First / Last Day of School": "Primer / ultimo dia de clases",
+      "First / Last Day of School": "Primer / último día de clases",
       "Early Release": "Salida temprana",
       "Proposed STAAR Testing": "Pruebas STAAR propuestas"
     }
@@ -862,6 +866,8 @@ function renderLanguageSwitch() {
     const isActive = button.dataset.language === UI_STATE.language;
     button.classList.toggle("is-active", isActive);
     button.setAttribute("aria-pressed", isActive ? "true" : "false");
+    if (button.dataset.language === "en") button.textContent = t.languageButtonEnglish;
+    if (button.dataset.language === "es") button.textContent = t.languageButtonSpanish;
   });
 
   applyLanguageControlState();
