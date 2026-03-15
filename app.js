@@ -175,7 +175,7 @@ const TRANSLATIONS = {
     filterFabAriaLabel: "Toggle filters",
     languageSelectorAriaLabel: "Language selector",
     districtLogoAlt: "Leander ISD logo",
-    professionalLearningCompact: "Prof. Learning/No School",
+    professionalLearningCompact: "Prof. Learning / No School",
     earlyReleaseBadge: "ER",
     weekdayInitials: ["S", "M", "T", "W", "T", "F", "S"],
     eventNames: {
