@@ -164,7 +164,7 @@ const DESKTOP_LANGUAGE_CONTROL_QUERY = window.matchMedia("(min-width: 621px), (m
 const TRANSLATIONS = {
   en: {
     htmlLang: "en",
-    languageToggleLabel: "English",
+    languageToggleLabel: "Language",
     languageButtonEnglish: "English",
     languageButtonSpanish: "Español",
     appTitle: "Academic Calendar",
@@ -215,7 +215,7 @@ const TRANSLATIONS = {
   },
   es: {
     htmlLang: "es",
-    languageToggleLabel: "Español",
+    languageToggleLabel: "Idioma",
     languageButtonEnglish: "English",
     languageButtonSpanish: "Español",
     appTitle: "Calendario académico",

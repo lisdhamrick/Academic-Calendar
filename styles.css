@@ -80,9 +80,9 @@ body {
   z-index: 32;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  gap: 0.45rem;
-  padding: 0.55rem 0.55rem 0.6rem 0.65rem;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.45rem 0.38rem 0.5rem 0.45rem;
   background: rgba(255, 255, 255, 0.9);
   border: 1px solid #d3dbe4;
   border-right: 0;
@@ -93,8 +93,8 @@ body {
 }
 
 .language-switch.is-collapsed {
-  transform: translate(calc(100% - 2.2rem), -50%);
-  opacity: 0.52;
+  transform: translate(calc(100% - 1.7rem), -50%);
+  opacity: 0.46;
 }
 
 .language-switch:hover,
@@ -105,29 +105,34 @@ body {
 }
 
 .language-switch-label {
-  font-size: 0.62rem;
+  font-size: 0.56rem;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--brand);
-  text-align: center;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
 }
 
 .language-switch-controls {
   display: inline-flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.25rem;
 }
 
 .language-option {
-  min-width: 4.35rem;
+  width: 2.15rem;
+  min-width: 2.15rem;
+  min-height: 4.15rem;
   border: 1px solid #c8d3de;
   background: #ffffff;
   color: #264257;
-  padding: 0.44rem 0.55rem;
+  padding: 0.35rem 0.22rem;
   font: inherit;
-  font-size: 0.78rem;
+  font-size: 0.68rem;
   font-weight: 700;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
   cursor: pointer;
   transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
 }
@@ -1332,9 +1337,13 @@ body.embedded-wide.hide-info-panel .app-layout {
   }
 
   .language-option {
+    width: auto;
     min-width: 4.2rem;
+    min-height: 0;
     padding: 0.4rem 0.62rem;
     font-size: 0.78rem;
+    writing-mode: initial;
+    transform: none;
   }
 
   .event-filters {
