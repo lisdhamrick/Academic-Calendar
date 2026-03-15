@@ -158,6 +158,109 @@ const CALENDAR_CONFIG = {
 
 const EMBED_RATIO_BREAKPOINT = 4 / 3;
 const urlParams = new URLSearchParams(window.location.search);
+const LANGUAGE_STORAGE_KEY = "academic-calendar-language";
+const DESKTOP_LANGUAGE_CONTROL_QUERY = window.matchMedia("(min-width: 621px), (min-aspect-ratio: 4/3)");
+
+const TRANSLATIONS = {
+  en: {
+    htmlLang: "en",
+    languageToggleLabel: "Idioma",
+    appTitle: "Academic Calendar",
+    fullScreenLabel: "Open full-screen calendar",
+    embedControlsLabel: "Embedded calendar controls",
+    eventFiltersLabel: "Calendar event filters",
+    monthsLabel: "Academic calendar months",
+    importantDatesHeading: "Important Dates",
+    filterFabLabel: "Filters",
+    filterFabAriaLabel: "Toggle filters",
+    languageSelectorAriaLabel: "Language selector",
+    districtLogoAlt: "Leander ISD logo",
+    professionalLearningCompact: "Prof. Learning/No School",
+    earlyReleaseBadge: "ER",
+    weekdayInitials: ["S", "M", "T", "W", "T", "F", "S"],
+    eventNames: {
+      newTeacherTraining: "New Teacher Training",
+      teacherProfessionalLearning: "Teacher Professional Learning",
+      studentStaffHoliday: "Student / Staff Holiday",
+      earlyRelease: "Early Release",
+      firstLastDay: "First / Last Day of School",
+      proposedStaar: "Proposed STAAR Testing",
+      gp6: "6-Week Grading Periods",
+      gp9: "9-Week Grading Periods"
+    },
+    phraseTranslations: {
+      "New Teacher Training": "New Teacher Training",
+      "Professional Learning": "Professional Learning",
+      "Parent-Teacher Conferences/Professional Learning":
+        "Parent-Teacher Conferences/Professional Learning",
+      "Continuous Improvement Conference": "Continuous Improvement Conference",
+      "Labor Day": "Labor Day",
+      "Student/Staff Break": "Student/Staff Break",
+      "Fall Break": "Fall Break",
+      "Winter Break": "Winter Break",
+      "Spring Break": "Spring Break",
+      "Martin Luther King Jr. Day": "Martin Luther King Jr. Day",
+      "Marin Luther King Jr. Day": "Martin Luther King Jr. Day",
+      "First Day of School": "First Day of School",
+      "Last Day of School/Early Release": "Last Day of School/Early Release",
+      "Last Day of School / Early Release": "Last Day of School / Early Release",
+      "Teacher Professional Learning": "Teacher Professional Learning",
+      "Student / Staff Holiday": "Student / Staff Holiday",
+      "First / Last Day of School": "First / Last Day of School",
+      "Early Release": "Early Release",
+      "Proposed STAAR Testing": "Proposed STAAR Testing"
+    }
+  },
+  es: {
+    htmlLang: "es",
+    languageToggleLabel: "Idioma",
+    appTitle: "Calendario academico",
+    fullScreenLabel: "Abrir calendario en pantalla completa",
+    embedControlsLabel: "Controles del calendario incrustado",
+    eventFiltersLabel: "Filtros de eventos del calendario",
+    monthsLabel: "Meses del calendario academico",
+    importantDatesHeading: "Fechas importantes",
+    filterFabLabel: "Filtros",
+    filterFabAriaLabel: "Mostrar u ocultar filtros",
+    languageSelectorAriaLabel: "Selector de idioma",
+    districtLogoAlt: "Logotipo de Leander ISD",
+    professionalLearningCompact: "Capacitacion/Sin clases",
+    earlyReleaseBadge: "SR",
+    weekdayInitials: ["D", "L", "M", "M", "J", "V", "S"],
+    eventNames: {
+      newTeacherTraining: "Capacitacion para maestros nuevos",
+      teacherProfessionalLearning: "Capacitacion profesional del personal",
+      studentStaffHoliday: "Feriado para estudiantes y personal",
+      earlyRelease: "Salida temprana",
+      firstLastDay: "Primer / ultimo dia de clases",
+      proposedStaar: "Pruebas STAAR propuestas",
+      gp6: "Periodos de calificacion de 6 semanas",
+      gp9: "Periodos de calificacion de 9 semanas"
+    },
+    phraseTranslations: {
+      "New Teacher Training": "Capacitacion para maestros nuevos",
+      "Professional Learning": "Capacitacion profesional",
+      "Parent-Teacher Conferences/Professional Learning":
+        "Conferencias de padres y maestros/Capacitacion profesional",
+      "Continuous Improvement Conference": "Conferencia de mejora continua",
+      "Labor Day": "Dia del Trabajo",
+      "Student/Staff Break": "Descanso para estudiantes y personal",
+      "Fall Break": "Vacaciones de otono",
+      "Winter Break": "Vacaciones de invierno",
+      "Spring Break": "Vacaciones de primavera",
+      "Martin Luther King Jr. Day": "Dia de Martin Luther King Jr.",
+      "Marin Luther King Jr. Day": "Dia de Martin Luther King Jr.",
+      "First Day of School": "Primer dia de clases",
+      "Last Day of School/Early Release": "Ultimo dia de clases/Salida temprana",
+      "Last Day of School / Early Release": "Ultimo dia de clases / Salida temprana",
+      "Teacher Professional Learning": "Capacitacion profesional del personal",
+      "Student / Staff Holiday": "Feriado para estudiantes y personal",
+      "First / Last Day of School": "Primer / ultimo dia de clases",
+      "Early Release": "Salida temprana",
+      "Proposed STAAR Testing": "Pruebas STAAR propuestas"
+    }
+  }
+};
 
 const FILTER_STATE = {
   visibleEventTypes: new Set(Object.keys(CALENDAR_CONFIG.eventTypes)),
@@ -178,6 +281,58 @@ let activeCalendarUi = {
   hideTooltip: () => {}
 };
 let globalUiBindingsReady = false;
+let languageUiReady = false;
+
+const UI_STATE = {
+  language: getInitialLanguage(),
+  desktopLanguageControlCollapsed: false
+};
+
+function getInitialLanguage() {
+  try {
+    const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    if (stored === "en" || stored === "es") return stored;
+  } catch {}
+  const requested = urlParams.get("lang");
+  if (requested === "en" || requested === "es") return requested;
+  return "en";
+}
+
+function getCurrentTranslations() {
+  return TRANSLATIONS[UI_STATE.language] || TRANSLATIONS.en;
+}
+
+function translatePhrase(text) {
+  if (typeof text !== "string" || !text.trim()) return text;
+  const dictionary = getCurrentTranslations().phraseTranslations;
+  return dictionary[text] || text;
+}
+
+function formatMonthName(date, format = "long") {
+  return new Intl.DateTimeFormat(getCurrentTranslations().htmlLang, { month: format }).format(date);
+}
+
+function formatLocalizedDateRange(startISO, endISO) {
+  const start = parseISODate(startISO);
+  const end = parseISODate(endISO);
+  const locale = getCurrentTranslations().htmlLang;
+  const sameDay = startISO === endISO;
+  const sameMonth = start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
+  const sameYear = start.getFullYear() === end.getFullYear();
+  const monthDay = (date) =>
+    new Intl.DateTimeFormat(locale, { month: "short", day: "numeric" }).format(date);
+  const monthDayYear = (date) =>
+    new Intl.DateTimeFormat(locale, { month: "short", day: "numeric", year: "numeric" }).format(date);
+
+  if (sameDay) return monthDayYear(start);
+  if (sameMonth) {
+    return `${monthDay(start)} - ${end.getDate()}, ${end.getFullYear()}`;
+  }
+  if (sameYear) {
+    return `${monthDay(start)} - ${monthDay(end)}, ${end.getFullYear()}`;
+  }
+  return `${monthDayYear(start)} - ${monthDayYear(end)}`;
+}
 
 function parseBooleanParam(value, fallback) {
   if (value === null) return fallback;
@@ -370,23 +525,55 @@ function buildStandaloneUrl() {
   standaloneUrl.searchParams.delete("embed");
   standaloneUrl.searchParams.delete("header");
   standaloneUrl.searchParams.delete("dates");
+  standaloneUrl.searchParams.set("lang", UI_STATE.language);
   return standaloneUrl.toString();
 }
 
 function applyDisplayState() {
+  const t = getCurrentTranslations();
   document.body.classList.toggle("is-embedded", DISPLAY_STATE.isEmbedded);
   document.body.classList.toggle("hide-header", !DISPLAY_STATE.showHeader);
   document.body.classList.toggle("hide-info-panel", !DISPLAY_STATE.showImportantDates);
+  document.documentElement.lang = t.htmlLang;
+  document.title = `Leander ISD ${t.appTitle}`;
+
+  const embedControls = document.getElementById("embedControls");
+  if (embedControls) embedControls.setAttribute("aria-label", t.embedControlsLabel);
 
   const expandViewLink = document.getElementById("expandViewLink");
   if (expandViewLink) {
     expandViewLink.href = buildStandaloneUrl();
+    expandViewLink.setAttribute("aria-label", t.fullScreenLabel);
+    expandViewLink.title = t.fullScreenLabel;
+  }
+
+  const calendarGrid = document.getElementById("calendarGrid");
+  if (calendarGrid) calendarGrid.setAttribute("aria-label", t.monthsLabel);
+
+  const eventFilters = document.getElementById("eventFilters");
+  if (eventFilters) eventFilters.setAttribute("aria-label", t.eventFiltersLabel);
+
+  const infoHeading = document.querySelector(".info-panel h2");
+  if (infoHeading) infoHeading.textContent = t.importantDatesHeading;
+
+  const heading = document.querySelector(".brand-text h1");
+  if (heading) heading.textContent = t.appTitle;
+
+  const districtLogo = document.querySelector(".district-logo");
+  if (districtLogo) districtLogo.alt = t.districtLogoAlt;
+
+  const fab = document.getElementById("legendFab");
+  if (fab) {
+    fab.setAttribute("aria-label", t.filterFabAriaLabel);
+    const fabLabel = fab.querySelector(".legend-fab-label");
+    if (fabLabel) fabLabel.textContent = t.filterFabLabel;
   }
 }
 
 function renderEventFilters() {
   const eventFilters = document.getElementById("eventFilters");
   if (!eventFilters) return;
+  const t = getCurrentTranslations();
 
   eventFilters.innerHTML = "";
 
@@ -394,13 +581,13 @@ function renderEventFilters() {
     ...Object.entries(CALENDAR_CONFIG.eventTypes).map(([type, config]) => ({
       kind: "event",
       type,
-      label: config.label,
+      label: t.eventNames[type] || config.label,
       className: config.className
     })),
     ...Object.entries(CALENDAR_CONFIG.gradingMarkerTypes).map(([type, config]) => ({
       kind: "marker",
       type,
-      label: config.label,
+      label: t.eventNames[type] || config.label,
       className: config.className
     }))
   ];
@@ -431,7 +618,7 @@ function renderEventFilters() {
       `;
     } else if (filter.type === "earlyRelease") {
       swatch.classList.add("filter-chip-swatch-er");
-      swatch.textContent = "ER";
+      swatch.textContent = t.earlyReleaseBadge;
     } else if (filter.type === "firstLastDay") {
       swatch.classList.add("filter-chip-swatch-frame");
     }
@@ -439,7 +626,7 @@ function renderEventFilters() {
     const label = document.createElement("span");
     label.className = "filter-chip-label";
     label.textContent =
-      filter.type === "teacherProfessionalLearning" ? "Prof. Learning/No School" : filter.label;
+      filter.type === "teacherProfessionalLearning" ? t.professionalLearningCompact : filter.label;
 
     button.appendChild(swatch);
     button.appendChild(label);
@@ -567,6 +754,117 @@ function bindGlobalUiHandlers() {
   });
 
   globalUiBindingsReady = true;
+}
+
+function applyLanguageControlState() {
+  const languageSwitch = document.getElementById("languageSwitch");
+  if (!languageSwitch) return;
+
+  const shouldCollapse =
+    UI_STATE.desktopLanguageControlCollapsed && DESKTOP_LANGUAGE_CONTROL_QUERY.matches;
+  languageSwitch.classList.toggle("is-collapsed", shouldCollapse);
+}
+
+function setDesktopLanguageControlCollapsed(collapsed) {
+  UI_STATE.desktopLanguageControlCollapsed = collapsed;
+  applyLanguageControlState();
+}
+
+function setLanguage(language) {
+  if (language !== "en" && language !== "es") return;
+  if (UI_STATE.language === language) return;
+
+  UI_STATE.language = language;
+  try {
+    window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+  } catch {}
+
+  applyDisplayState();
+  renderLanguageSwitch();
+  renderEventFilters();
+  renderCalendar();
+}
+
+function setupLanguageSwitch() {
+  const languageSwitch = document.getElementById("languageSwitch");
+  if (!languageSwitch || languageUiReady) return;
+
+  languageSwitch.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const button = target.closest(".language-option");
+    if (!(button instanceof HTMLButtonElement)) return;
+    setLanguage(button.dataset.language || "en");
+    if (DESKTOP_LANGUAGE_CONTROL_QUERY.matches) setDesktopLanguageControlCollapsed(true);
+  });
+
+  languageSwitch.addEventListener("mouseenter", () => {
+    if (DESKTOP_LANGUAGE_CONTROL_QUERY.matches) languageSwitch.classList.remove("is-collapsed");
+  });
+
+  languageSwitch.addEventListener("mouseleave", () => {
+    applyLanguageControlState();
+  });
+
+  languageSwitch.addEventListener("focusin", () => {
+    if (DESKTOP_LANGUAGE_CONTROL_QUERY.matches) languageSwitch.classList.remove("is-collapsed");
+  });
+
+  languageSwitch.addEventListener("focusout", () => {
+    requestAnimationFrame(() => {
+      if (!languageSwitch.contains(document.activeElement)) applyLanguageControlState();
+    });
+  });
+
+  const collapseAfterInteraction = (event) => {
+    if (!DESKTOP_LANGUAGE_CONTROL_QUERY.matches) return;
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    if (target.closest("#languageSwitch")) return;
+    if (target.closest(".calendar-app") || target.closest(".legend-fab") || target.closest(".embed-control-btn")) {
+      setDesktopLanguageControlCollapsed(true);
+    }
+  };
+
+  document.addEventListener("pointerdown", collapseAfterInteraction, { passive: true });
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (!DESKTOP_LANGUAGE_CONTROL_QUERY.matches) return;
+      if (window.scrollY > 12) setDesktopLanguageControlCollapsed(true);
+    },
+    { passive: true }
+  );
+  DESKTOP_LANGUAGE_CONTROL_QUERY.addEventListener("change", () => {
+    if (!DESKTOP_LANGUAGE_CONTROL_QUERY.matches) {
+      setDesktopLanguageControlCollapsed(false);
+    } else {
+      applyLanguageControlState();
+    }
+  });
+
+  languageUiReady = true;
+}
+
+function renderLanguageSwitch() {
+  const t = getCurrentTranslations();
+  const languageSwitch = document.getElementById("languageSwitch");
+  if (!languageSwitch) return;
+
+  languageSwitch.setAttribute("aria-label", t.languageSelectorAriaLabel);
+
+  const label = document.getElementById("languageSwitchLabel");
+  if (label) label.textContent = t.languageToggleLabel;
+
+  const buttons = languageSwitch.querySelectorAll(".language-option");
+  buttons.forEach((button) => {
+    if (!(button instanceof HTMLButtonElement)) return;
+    const isActive = button.dataset.language === UI_STATE.language;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-pressed", isActive ? "true" : "false");
+  });
+
+  applyLanguageControlState();
 }
 
 function updateEmbeddedScale() {
@@ -835,41 +1133,7 @@ function setupLegendDrawer() {
 }
 
 function formatPanelDateRange(startISO, endISO) {
-  const start = parseISODate(startISO);
-  const end = parseISODate(endISO);
-  const apMonth = (date) => {
-    const month = new Intl.DateTimeFormat("en-US", { month: "long" }).format(date);
-    const map = {
-      January: "Jan.",
-      February: "Feb.",
-      March: "March",
-      April: "April",
-      May: "May",
-      June: "June",
-      July: "July",
-      August: "Aug.",
-      September: "Sept.",
-      October: "Oct.",
-      November: "Nov.",
-      December: "Dec."
-    };
-    return map[month] || month;
-  };
-  const sMonth = apMonth(start);
-  const eMonth = apMonth(end);
-  const sDay = start.getDate();
-  const eDay = end.getDate();
-  const sYear = start.getFullYear();
-  const eYear = end.getFullYear();
-
-  if (startISO === endISO) return `${sMonth} ${sDay}, ${sYear}`;
-  if (sYear === eYear && start.getMonth() === end.getMonth()) {
-    return `${sMonth} ${sDay} - ${eDay}, ${sYear}`;
-  }
-  if (sYear === eYear) {
-    return `${sMonth} ${sDay} - ${eMonth} ${eDay}, ${sYear}`;
-  }
-  return `${sMonth} ${sDay}, ${sYear} - ${eMonth} ${eDay}, ${eYear}`;
+  return formatLocalizedDateRange(startISO, endISO);
 }
 
 function isWeekendISO(isoDate) {
@@ -909,7 +1173,7 @@ function buildNamedImportantFromEventRules(rules) {
 
     entries.push({
       id: `ev-${index}`,
-      label: name,
+      label: translatePhrase(name),
       dateText: formatPanelDateRange(start, end),
       start,
       end,
@@ -927,7 +1191,7 @@ function buildFallbackImportantEntries(entries) {
     .filter((entry) => entry.start)
     .map((entry, index) => ({
       id: `imp-${index}`,
-      label: entry.label,
+      label: translatePhrase(entry.label),
       dateText: formatPanelDateRange(entry.start, entry.end),
       start: entry.start,
       end: entry.end,
@@ -958,6 +1222,7 @@ function shouldSplitBetweenCells(leftCell, rightCell, eventLookup, markerLookup)
 }
 
 function renderCalendar() {
+  const t = getCurrentTranslations();
   const schoolYearLabel = document.getElementById("schoolYearLabel");
   const calendarGrid = document.getElementById("calendarGrid");
   const legend = document.getElementById("legend");
@@ -971,7 +1236,6 @@ function renderCalendar() {
 
   schoolYearLabel.textContent = CALENDAR_CONFIG.schoolYearLabel;
 
-  const monthFormatter = new Intl.DateTimeFormat("en-US", { month: "long" });
   const filteredEvents = CALENDAR_CONFIG.events.filter((event) =>
     FILTER_STATE.visibleEventTypes.has(event.type)
   );
@@ -1016,7 +1280,7 @@ function renderCalendar() {
     const monthCard = document.createElement("article");
     monthCard.className = "month-card";
 
-    const monthName = monthFormatter.format(anchorDate);
+    const monthName = formatMonthName(anchorDate);
     const year = anchorDate.getFullYear();
     monthCard.innerHTML = `
       <header>
@@ -1024,13 +1288,9 @@ function renderCalendar() {
         <p>${year}</p>
       </header>
       <ol class="weekday-row">
-        <li><span class="weekday-label">S</span></li>
-        <li><span class="weekday-label">M</span></li>
-        <li><span class="weekday-label">T</span></li>
-        <li><span class="weekday-label">W</span></li>
-        <li><span class="weekday-label">T</span></li>
-        <li><span class="weekday-label">F</span></li>
-        <li><span class="weekday-label">S</span></li>
+        ${t.weekdayInitials
+          .map((initial) => `<li><span class="weekday-label">${initial}</span></li>`)
+          .join("")}
       </ol>
       <ol class="days-grid"></ol>
     `;
@@ -1092,8 +1352,8 @@ function renderCalendar() {
 
         if (dayEvents.includes("earlyRelease")) {
           dayCell.classList.add("day-cell-er");
-          dayCell.innerHTML = '<span class="day-glyph"><span class="day-number er-label">ER</span></span>';
-          dayCell.setAttribute("aria-label", `Early Release: ${cell.day}`);
+          dayCell.innerHTML = `<span class="day-glyph"><span class="day-number er-label">${t.earlyReleaseBadge}</span></span>`;
+          dayCell.setAttribute("aria-label", `${t.eventNames.earlyRelease}: ${cell.day}`);
         } else {
           dayCell.innerHTML = `<span class="day-glyph"><span class="day-number">${cell.day}</span></span>`;
         }
@@ -1137,20 +1397,26 @@ function renderCalendar() {
   }
 
   Object.values(CALENDAR_CONFIG.eventTypes).forEach((eventType) => {
+    const eventTypeKey = Object.entries(CALENDAR_CONFIG.eventTypes).find(
+      ([, config]) => config === eventType
+    )?.[0];
     const item = document.createElement("span");
     item.className = "legend-item";
     const swatch = document.createElement("span");
     swatch.className = `legend-swatch ${eventType.className}`;
     if (eventType.className === "event-early-release") {
       swatch.classList.add("legend-swatch-er");
-      swatch.textContent = "ER";
+      swatch.textContent = t.earlyReleaseBadge;
     }
     item.appendChild(swatch);
-    item.append(` ${eventType.label}`);
+    item.append(` ${t.eventNames[eventTypeKey] || eventType.label}`);
     legend.appendChild(item);
   });
 
   Object.values(CALENDAR_CONFIG.gradingMarkerTypes).forEach((markerType) => {
+    const markerTypeKey = Object.entries(CALENDAR_CONFIG.gradingMarkerTypes).find(
+      ([, config]) => config === markerType
+    )?.[0];
     const item = document.createElement("span");
     item.className = "legend-item";
     const markerCell = document.createElement("span");
@@ -1164,7 +1430,7 @@ function renderCalendar() {
     markerCell.appendChild(start);
     markerCell.appendChild(end);
     item.appendChild(markerCell);
-    item.append(` ${markerType.label}`);
+    item.append(` ${t.eventNames[markerTypeKey] || markerType.label}`);
     legend.appendChild(item);
   });
 
@@ -1289,12 +1555,15 @@ loadSharedControls()
   })
   .finally(() => {
     applyDisplayState();
+    renderLanguageSwitch();
+    setupLanguageSwitch();
     renderEventFilters();
     setupEventFilters();
     bindGlobalUiHandlers();
     renderCalendar();
     setupLegendDrawer();
     window.addEventListener("resize", () => {
+      applyLanguageControlState();
       balanceEventFilters();
       syncInfoPanelHeight();
       updateEmbeddedScale();

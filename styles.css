@@ -73,6 +73,68 @@ body {
   transform-origin: top center;
 }
 
+.language-switch {
+  position: fixed;
+  top: 50%;
+  right: 0;
+  z-index: 32;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.8rem 0.9rem 0.8rem 1rem;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #d3dbe4;
+  border-right: 0;
+  box-shadow: 0 14px 32px rgba(8, 32, 56, 0.14);
+  transform: translate(0, -50%);
+  transition: transform 220ms ease, box-shadow 180ms ease;
+  backdrop-filter: blur(8px);
+}
+
+.language-switch.is-collapsed {
+  transform: translate(calc(100% - 3.1rem), -50%);
+}
+
+.language-switch:hover,
+.language-switch:focus-within {
+  transform: translate(0, -50%);
+  box-shadow: 0 16px 34px rgba(8, 32, 56, 0.18);
+}
+
+.language-switch-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--brand);
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+.language-switch-controls {
+  display: inline-flex;
+  gap: 0.35rem;
+}
+
+.language-option {
+  min-width: 4.8rem;
+  border: 1px solid #c8d3de;
+  background: #ffffff;
+  color: #264257;
+  padding: 0.48rem 0.72rem;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
+}
+
+.language-option.is-active {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #ffffff;
+}
+
 .app-header {
   margin-top: 0;
   background: var(--brand);
@@ -1230,6 +1292,46 @@ body.embedded-wide.hide-info-panel .app-layout {
 
   .calendar-app {
     padding-inline: 0;
+  }
+
+  .language-switch {
+    position: static;
+    top: auto;
+    right: auto;
+    transform: none;
+    width: 100%;
+    justify-content: space-between;
+    gap: 0.65rem;
+    padding: 0.45rem 0.6rem;
+    border: 0;
+    border-bottom: 1px solid #d8e0e9;
+    box-shadow: none;
+    background: #edf3f8;
+    backdrop-filter: none;
+  }
+
+  .language-switch.is-collapsed,
+  .language-switch:hover,
+  .language-switch:focus-within {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .language-switch-label {
+    writing-mode: initial;
+    transform: none;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+  }
+
+  .language-switch-controls {
+    flex: 0 0 auto;
+  }
+
+  .language-option {
+    min-width: 4.2rem;
+    padding: 0.4rem 0.62rem;
+    font-size: 0.78rem;
   }
 
   .event-filters {

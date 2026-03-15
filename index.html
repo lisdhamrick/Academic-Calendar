@@ -23,6 +23,33 @@
 
     <div class="calendar-shell" id="calendarShell">
       <main class="calendar-app" id="calendarApp">
+        <section
+          class="language-switch"
+          id="languageSwitch"
+          aria-label="Language selector"
+        >
+          <span class="language-switch-label" id="languageSwitchLabel">Idioma</span>
+          <div class="language-switch-controls" role="group" aria-labelledby="languageSwitchLabel">
+            <button
+              class="language-option is-active"
+              id="languageOptionEn"
+              type="button"
+              data-language="en"
+              aria-pressed="true"
+            >
+              English
+            </button>
+            <button
+              class="language-option"
+              id="languageOptionEs"
+              type="button"
+              data-language="es"
+              aria-pressed="false"
+            >
+              Espanol
+            </button>
+          </div>
+        </section>
         <header class="app-header">
           <div class="brand-block">
             <img
