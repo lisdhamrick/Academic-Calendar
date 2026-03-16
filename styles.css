@@ -80,26 +80,26 @@ body {
   z-index: 32;
   display: flex;
   align-items: stretch;
-  gap: 0.75rem;
-  padding: 0.75rem 0.75rem 0.75rem 0;
-  background: rgba(255, 255, 255, 0.88);
+  gap: 0.55rem;
+  padding: 0.42rem 0.42rem 0.42rem 0;
+  background: rgba(255, 255, 255, 0.84);
   border: 0;
-  border-radius: 1rem 0 0 1rem;
-  box-shadow: 0 10px 28px rgba(8, 32, 56, 0.12);
+  border-radius: 0.6rem 0 0 0.6rem;
+  box-shadow: 0 10px 22px rgba(8, 32, 56, 0.12);
   transform: translate(0, -50%);
   transition: transform 220ms ease, box-shadow 180ms ease, opacity 180ms ease;
   backdrop-filter: blur(10px);
 }
 
 .language-switch.is-collapsed {
-  transform: translate(calc(100% - 3rem), -50%);
-  opacity: 0.42;
+  transform: translate(calc(100% - 2.55rem), -50%);
+  opacity: 0.44;
 }
 
 .language-switch:hover,
 .language-switch:focus-within {
   transform: translate(0, -50%);
-  box-shadow: 0 14px 34px rgba(8, 32, 56, 0.16);
+  box-shadow: 0 12px 26px rgba(8, 32, 56, 0.15);
   opacity: 1;
 }
 
@@ -107,14 +107,14 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 5.8rem;
+  min-width: 2.55rem;
   min-height: 100%;
-  padding: 1rem 0.8rem;
+  padding: 0.65rem 0.35rem;
   background: var(--brand);
-  border-radius: 0 0.2rem 0.2rem 0;
-  font-size: 0.98rem;
+  border-radius: 0 0.1rem 0.1rem 0;
+  font-size: 0.52rem;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: #ffffff;
   writing-mode: vertical-rl;
@@ -124,19 +124,19 @@ body {
 .language-switch-controls {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.42rem;
 }
 
 .language-option {
-  width: 5.8rem;
-  min-width: 5.8rem;
-  min-height: 12rem;
+  width: 3.8rem;
+  min-width: 3.8rem;
+  min-height: 8.5rem;
   border: 1px solid #d8dce1;
   background: #ffffff;
   color: var(--brand);
-  padding: 1rem 0.8rem;
+  padding: 0.6rem 0.38rem;
   font: inherit;
-  font-size: 1.05rem;
+  font-size: 0.84rem;
   font-weight: 700;
   writing-mode: vertical-rl;
   transform: rotate(180deg);
@@ -1340,10 +1340,10 @@ body.embedded-wide.hide-info-panel .app-layout {
     min-width: 0;
     min-height: 0;
     flex: 1 1 auto;
-    padding: 0.9rem 1rem;
+    padding: 0.7rem 0.95rem;
     border-radius: 0;
-    font-size: clamp(0.9rem, 3.2vw, 1.28rem);
-    letter-spacing: 0.08em;
+    font-size: clamp(0.8rem, 2.8vw, 1.08rem);
+    letter-spacing: 0.1em;
   }
 
   .language-switch-controls {
@@ -1354,10 +1354,10 @@ body.embedded-wide.hide-info-panel .app-layout {
 
   .language-option {
     width: auto;
-    min-width: 7rem;
+    min-width: 6.25rem;
     min-height: 0;
-    padding: 0.9rem 1.05rem;
-    font-size: clamp(0.84rem, 2.85vw, 1.18rem);
+    padding: 0.7rem 0.9rem;
+    font-size: clamp(0.78rem, 2.45vw, 1rem);
     writing-mode: initial;
     transform: none;
     border-top: 0;
