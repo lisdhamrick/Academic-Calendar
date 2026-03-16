@@ -1,5 +1,5 @@
 :root {
-  --font-main: "Futura", "Futura PT", "Trebuchet MS", "Avenir Next", Arial, sans-serif;
+  --font-main: "Futura PT", "Futura", "Trebuchet MS", "Avenir Next", Arial, sans-serif;
   --bg: #f3f4f6;
   --panel: #ffffff;
   --ink: #005987;
@@ -107,12 +107,12 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 1.95rem;
+  min-width: 1.5rem;
   padding: 0;
   background: var(--brand);
   font-size: 0.56rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
+  font-weight: 500;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
   color: #ffffff;
   writing-mode: vertical-rl;
@@ -1355,8 +1355,8 @@ body.embedded-wide.hide-info-panel .app-layout {
   .language-switch-controls {
     flex: 0 0 auto;
     flex-direction: row;
-    gap: 0.24rem;
-    padding: 0.18rem 0 0.18rem 0.24rem;
+    gap: 8px;
+    padding: 8px;
     background: #ffffff;
   }
 
@@ -1364,7 +1364,6 @@ body.embedded-wide.hide-info-panel .app-layout {
     width: auto;
     min-width: 7rem;
     min-height: 0;
-    padding: 0.7rem 1.15rem;
     font-size: clamp(0.9rem, 2.35vw, 1rem);
     writing-mode: initial;
     transform: none;
