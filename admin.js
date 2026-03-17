@@ -48,7 +48,8 @@ function groupEventRules(eventRules) {
     groups[rule.type].push({
       start: rule.start || "",
       end: rule.end || rule.start || "",
-      name: typeof rule.name === "string" ? rule.name : ""
+      name: typeof rule.name === "string" ? rule.name : "",
+      enabled: rule.enabled !== false
     });
   });
   return groups;
@@ -58,10 +59,18 @@ function normalizeGradingRanges(saved) {
   if (!saved || typeof saved !== "object") return { gp6: [], gp9: [] };
   return {
     gp6: Array.isArray(saved.gp6)
-      ? saved.gp6.map((range) => ({ start: range.start || "", end: range.end || "" }))
+      ? saved.gp6.map((range) => ({
+          start: range.start || "",
+          end: range.end || "",
+          enabled: range.enabled !== false
+        }))
       : [],
     gp9: Array.isArray(saved.gp9)
-      ? saved.gp9.map((range) => ({ start: range.start || "", end: range.end || "" }))
+      ? saved.gp9.map((range) => ({
+          start: range.start || "",
+          end: range.end || "",
+          enabled: range.enabled !== false
+        }))
       : []
   };
 }
@@ -91,6 +100,7 @@ function rangesToMarkers(gradingGroups) {
   const markers = [];
   ["gp6", "gp9"].forEach((type) => {
     (gradingGroups[type] || []).forEach((range) => {
+      if (range.enabled === false) return;
       if (!range.start || !range.end) return;
       markers.push({ type, date: range.start, side: "start" });
       markers.push({ type, date: range.end, side: "end" });
@@ -108,7 +118,8 @@ function flattenEventRules(eventGroups) {
         start: range.start,
         end: range.end || range.start,
         weekdaysOnly: true,
-        name: (range.name || "").trim()
+        name: (range.name || "").trim(),
+        enabled: range.enabled !== false
       }))
   );
 }
@@ -150,7 +161,7 @@ function formatPanelDateRange(startISO, endISO) {
 function buildImportantDatesFromEventGroups(eventGroups) {
   const rules = flattenEventRules(eventGroups);
   return rules
-    .filter((rule) => rule.name)
+    .filter((rule) => rule.enabled !== false && rule.name)
     .map((rule) => ({
       label: rule.name,
       dateText: formatPanelDateRange(rule.start, rule.end),
@@ -394,7 +405,7 @@ function renderEventGroups() {
     addBtn.className = "btn";
     addBtn.textContent = "Add Range";
     addBtn.addEventListener("click", () => {
-      ranges.push({ start: "", end: "", name: "" });
+      ranges.push({ start: "", end: "", name: "", enabled: true });
       renderEventGroups();
       markDirty();
     });
@@ -408,6 +419,7 @@ function renderEventGroups() {
           <th>Name (Optional)</th>
           <th>Start</th>
           <th>End</th>
+          <th>Show</th>
           <th>Action</th>
         </tr>
       </thead>
@@ -444,6 +456,15 @@ function renderEventGroups() {
       });
       endCell.appendChild(endInput);
 
+      const enabledCell = document.createElement("td");
+      const enabledInput = createInput("checkbox", "");
+      enabledInput.checked = range.enabled !== false;
+      enabledInput.addEventListener("change", () => {
+        range.enabled = enabledInput.checked;
+        markDirty();
+      });
+      enabledCell.appendChild(enabledInput);
+
       const actionCell = document.createElement("td");
       actionCell.appendChild(
         createDeleteButton(() => {
@@ -452,7 +473,7 @@ function renderEventGroups() {
         })
       );
 
-      row.append(nameCell, startCell, endCell, actionCell);
+      row.append(nameCell, startCell, endCell, enabledCell, actionCell);
       tbody.appendChild(row);
     });
 
@@ -479,7 +500,7 @@ function renderGradingGroups() {
     addBtn.className = "btn";
     addBtn.textContent = "Add Range";
     addBtn.addEventListener("click", () => {
-      ranges.push({ start: "", end: "" });
+      ranges.push({ start: "", end: "", enabled: true });
       renderGradingGroups();
       markDirty();
     });
@@ -492,6 +513,7 @@ function renderGradingGroups() {
         <tr>
           <th>Start Date</th>
           <th>End Date</th>
+          <th>Show</th>
           <th>Action</th>
         </tr>
       </thead>
@@ -519,6 +541,15 @@ function renderGradingGroups() {
       });
       endCell.appendChild(endInput);
 
+      const enabledCell = document.createElement("td");
+      const enabledInput = createInput("checkbox", "");
+      enabledInput.checked = range.enabled !== false;
+      enabledInput.addEventListener("change", () => {
+        range.enabled = enabledInput.checked;
+        markDirty();
+      });
+      enabledCell.appendChild(enabledInput);
+
       const actionCell = document.createElement("td");
       actionCell.appendChild(
         createDeleteButton(() => {
@@ -527,7 +558,7 @@ function renderGradingGroups() {
         })
       );
 
-      row.append(startCell, endCell, actionCell);
+      row.append(startCell, endCell, enabledCell, actionCell);
       tbody.appendChild(row);
     });
 
@@ -553,8 +584,12 @@ function collectForm() {
     monthsToRender: Number(monthsToRenderInput.value),
     eventRules: flattenEventRules(state.eventGroups),
     gradingRanges: {
-      gp6: (state.gradingGroups.gp6 || []).filter((range) => range.start && range.end),
-      gp9: (state.gradingGroups.gp9 || []).filter((range) => range.start && range.end)
+      gp6: (state.gradingGroups.gp6 || [])
+        .filter((range) => range.start && range.end)
+        .map((range) => ({ start: range.start, end: range.end, enabled: range.enabled !== false })),
+      gp9: (state.gradingGroups.gp9 || [])
+        .filter((range) => range.start && range.end)
+        .map((range) => ({ start: range.start, end: range.end, enabled: range.enabled !== false }))
     },
     gradingMarkers: rangesToMarkers(state.gradingGroups),
     importantDates: buildImportantDatesFromEventGroups(state.eventGroups)

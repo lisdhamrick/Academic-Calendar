@@ -7,49 +7,10 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <div class="embed-controls" id="embedControls" aria-label="Embedded calendar controls">
-      <a
-        class="embed-control-btn embed-expand-link"
-        id="expandViewLink"
-        href="./"
-        target="_blank"
-        rel="noopener"
-        aria-label="Open full-screen calendar"
-        title="Open full-screen calendar"
-      >
-        <span class="embed-expand-icon" aria-hidden="true"></span>
-      </a>
-    </div>
+    <div class="embed-controls" id="embedControls" aria-label="Embedded calendar controls"></div>
 
     <div class="calendar-shell" id="calendarShell">
       <main class="calendar-app" id="calendarApp">
-        <section
-          class="language-switch"
-          id="languageSwitch"
-          aria-label="Language selector"
-        >
-          <span class="language-switch-label" id="languageSwitchLabel">Language</span>
-          <div class="language-switch-controls" role="group" aria-labelledby="languageSwitchLabel">
-            <button
-              class="language-option"
-              id="languageOptionEs"
-              type="button"
-              data-language="es"
-              aria-pressed="false"
-            >
-              Español
-            </button>
-            <button
-              class="language-option is-active"
-              id="languageOptionEn"
-              type="button"
-              data-language="en"
-              aria-pressed="true"
-            >
-              English
-            </button>
-          </div>
-        </section>
         <header class="app-header">
           <div class="brand-block">
             <img
@@ -69,6 +30,28 @@
           </div>
           <p class="school-year" id="schoolYearLabel"></p>
         </header>
+        <section class="language-switch" id="languageSwitch" aria-label="Language selector">
+          <div class="language-switch-controls" role="group" aria-label="Language selector">
+            <button
+              class="language-option is-active"
+              id="languageOptionEn"
+              type="button"
+              data-language="en"
+              aria-pressed="true"
+            >
+              English
+            </button>
+            <button
+              class="language-option"
+              id="languageOptionEs"
+              type="button"
+              data-language="es"
+              aria-pressed="false"
+            >
+              Español
+            </button>
+          </div>
+        </section>
         <section class="event-filters" id="eventFilters" aria-label="Calendar event filters"></section>
 
         <div class="app-layout">

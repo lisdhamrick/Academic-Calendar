@@ -370,8 +370,9 @@ function expandEventRules(rules) {
 
   rules.forEach((rule) => {
     if (!rule || typeof rule !== "object") return;
-    const { type, start, end, weekdaysOnly } = rule;
+    const { type, start, end, weekdaysOnly, enabled } = rule;
     if (!type || !start) return;
+    if (enabled === false) return;
     const finalEnd = end || start;
     if (!CALENDAR_CONFIG.eventTypes[type]) return;
 
@@ -403,7 +404,8 @@ function sanitizeEventRules(rules) {
       start: rule.start,
       end: typeof rule.end === "string" && rule.end ? rule.end : rule.start,
       weekdaysOnly: Boolean(rule.weekdaysOnly),
-      name: typeof rule.name === "string" ? rule.name.trim() : ""
+      name: typeof rule.name === "string" ? rule.name.trim() : "",
+      enabled: rule.enabled !== false
     }));
 }
 
@@ -427,6 +429,7 @@ function markersFromRanges(gradingRanges) {
     const ranges = Array.isArray(gradingRanges[type]) ? gradingRanges[type] : [];
     ranges.forEach((range) => {
       if (!range || typeof range.start !== "string" || typeof range.end !== "string") return;
+      if (range.enabled === false) return;
       if (!range.start || !range.end) return;
       markers.push({ type, date: range.start, side: "start" });
       markers.push({ type, date: range.end, side: "end" });
@@ -574,27 +577,59 @@ function applyDisplayState() {
   }
 }
 
+function getAvailableFilterTypes() {
+  const eventTypes = new Set();
+  const markerTypes = new Set();
+
+  if (Array.isArray(CALENDAR_CONFIG.eventRules) && CALENDAR_CONFIG.eventRules.length > 0) {
+    CALENDAR_CONFIG.eventRules.forEach((rule) => {
+      if (!rule || rule.enabled === false || !CALENDAR_CONFIG.eventTypes[rule.type]) return;
+      eventTypes.add(rule.type);
+    });
+  } else {
+    CALENDAR_CONFIG.events.forEach((event) => {
+      if (!event || !CALENDAR_CONFIG.eventTypes[event.type]) return;
+      eventTypes.add(event.type);
+    });
+  }
+
+  CALENDAR_CONFIG.gradingMarkers.forEach((marker) => {
+    if (!marker || !CALENDAR_CONFIG.gradingMarkerTypes[marker.type]) return;
+    markerTypes.add(marker.type);
+  });
+
+  return { eventTypes, markerTypes };
+}
+
 function renderEventFilters() {
   const eventFilters = document.getElementById("eventFilters");
   if (!eventFilters) return;
   const t = getCurrentTranslations();
+  const available = getAvailableFilterTypes();
 
   eventFilters.innerHTML = "";
 
   const filters = [
-    ...Object.entries(CALENDAR_CONFIG.eventTypes).map(([type, config]) => ({
-      kind: "event",
-      type,
-      label: t.eventNames[type] || config.label,
-      className: config.className
-    })),
-    ...Object.entries(CALENDAR_CONFIG.gradingMarkerTypes).map(([type, config]) => ({
-      kind: "marker",
-      type,
-      label: t.eventNames[type] || config.label,
-      className: config.className
-    }))
+    ...Object.entries(CALENDAR_CONFIG.eventTypes)
+      .filter(([type]) => available.eventTypes.has(type))
+      .map(([type, config]) => ({
+        kind: "event",
+        type,
+        label: t.eventNames[type] || config.label,
+        className: config.className
+      })),
+    ...Object.entries(CALENDAR_CONFIG.gradingMarkerTypes)
+      .filter(([type]) => available.markerTypes.has(type))
+      .map(([type, config]) => ({
+        kind: "marker",
+        type,
+        label: t.eventNames[type] || config.label,
+        className: config.className
+      }))
   ];
+
+  eventFilters.hidden = filters.length === 0;
+  if (filters.length === 0) return;
 
   filters.forEach((filter) => {
     const button = document.createElement("button");
@@ -763,10 +798,7 @@ function bindGlobalUiHandlers() {
 function applyLanguageControlState() {
   const languageSwitch = document.getElementById("languageSwitch");
   if (!languageSwitch) return;
-
-  const shouldCollapse =
-    UI_STATE.desktopLanguageControlCollapsed && DESKTOP_LANGUAGE_CONTROL_QUERY.matches;
-  languageSwitch.classList.toggle("is-collapsed", shouldCollapse);
+  languageSwitch.classList.remove("is-collapsed");
 }
 
 function setDesktopLanguageControlCollapsed(collapsed) {
@@ -799,52 +831,6 @@ function setupLanguageSwitch() {
     const button = target.closest(".language-option");
     if (!(button instanceof HTMLButtonElement)) return;
     setLanguage(button.dataset.language || "en");
-    if (DESKTOP_LANGUAGE_CONTROL_QUERY.matches) setDesktopLanguageControlCollapsed(true);
-  });
-
-  languageSwitch.addEventListener("mouseenter", () => {
-    if (DESKTOP_LANGUAGE_CONTROL_QUERY.matches) languageSwitch.classList.remove("is-collapsed");
-  });
-
-  languageSwitch.addEventListener("mouseleave", () => {
-    applyLanguageControlState();
-  });
-
-  languageSwitch.addEventListener("focusin", () => {
-    if (DESKTOP_LANGUAGE_CONTROL_QUERY.matches) languageSwitch.classList.remove("is-collapsed");
-  });
-
-  languageSwitch.addEventListener("focusout", () => {
-    requestAnimationFrame(() => {
-      if (!languageSwitch.contains(document.activeElement)) applyLanguageControlState();
-    });
-  });
-
-  const collapseAfterInteraction = (event) => {
-    if (!DESKTOP_LANGUAGE_CONTROL_QUERY.matches) return;
-    const target = event.target;
-    if (!(target instanceof Element)) return;
-    if (target.closest("#languageSwitch")) return;
-    if (target.closest(".calendar-app") || target.closest(".legend-fab") || target.closest(".embed-control-btn")) {
-      setDesktopLanguageControlCollapsed(true);
-    }
-  };
-
-  document.addEventListener("pointerdown", collapseAfterInteraction, { passive: true });
-  window.addEventListener(
-    "scroll",
-    () => {
-      if (!DESKTOP_LANGUAGE_CONTROL_QUERY.matches) return;
-      if (window.scrollY > 12) setDesktopLanguageControlCollapsed(true);
-    },
-    { passive: true }
-  );
-  DESKTOP_LANGUAGE_CONTROL_QUERY.addEventListener("change", () => {
-    if (!DESKTOP_LANGUAGE_CONTROL_QUERY.matches) {
-      setDesktopLanguageControlCollapsed(false);
-    } else {
-      applyLanguageControlState();
-    }
   });
 
   languageUiReady = true;
@@ -856,9 +842,6 @@ function renderLanguageSwitch() {
   if (!languageSwitch) return;
 
   languageSwitch.setAttribute("aria-label", t.languageSelectorAriaLabel);
-
-  const label = document.getElementById("languageSwitchLabel");
-  if (label) label.textContent = t.languageToggleLabel;
 
   const buttons = languageSwitch.querySelectorAll(".language-option");
   buttons.forEach((button) => {
