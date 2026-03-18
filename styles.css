@@ -188,7 +188,7 @@ body {
 .school-year {
   margin: 0;
   font-family: var(--font-main);
-  font-weight: 900;
+  font-weight: 700;
   font-size: clamp(2rem, 5vw, 4rem);
   color: var(--gold);
   text-shadow: none;
