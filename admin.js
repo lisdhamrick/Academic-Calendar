@@ -1,5 +1,8 @@
 const CONTROLS_URL = window.ACADEMIC_CALENDAR_CONTROLS_URL || "./calendar-controls.json";
-const SETTINGS_KEY = "academicCalendarGithubSettingsV1";
+const SETTINGS_KEY =
+  window.ACADEMIC_CALENDAR_SETTINGS_KEY || "academicCalendarGithubSettingsV1";
+const DEFAULT_GITHUB_PATH =
+  window.ACADEMIC_CALENDAR_DEFAULT_GITHUB_PATH || "calendar-controls.json";
 
 const MONTHS = [
   "January",
@@ -179,7 +182,7 @@ function loadGithubSettings() {
         owner: "lisdhamrick",
         repo: "Academic-Calendar",
         branch: "main",
-        path: "calendar-controls.json",
+        path: DEFAULT_GITHUB_PATH,
         token: ""
       };
     }
@@ -188,7 +191,7 @@ function loadGithubSettings() {
       owner: saved.owner || "lisdhamrick",
       repo: saved.repo || "Academic-Calendar",
       branch: saved.branch || "main",
-      path: saved.path || "calendar-controls.json",
+      path: saved.path || DEFAULT_GITHUB_PATH,
       token: saved.token || ""
     };
   } catch {
@@ -196,7 +199,7 @@ function loadGithubSettings() {
       owner: "lisdhamrick",
       repo: "Academic-Calendar",
       branch: "main",
-      path: "calendar-controls.json",
+      path: DEFAULT_GITHUB_PATH,
       token: ""
     };
   }

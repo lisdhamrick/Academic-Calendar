@@ -1,0 +1,341 @@
+{
+  "schoolYearLabel": "2026-2027",
+  "startYear": 2026,
+  "startMonth": 6,
+  "monthsToRender": 12,
+  "eventRules": [
+    {
+      "type": "newTeacherTraining",
+      "start": "2026-07-28",
+      "end": "2026-07-31",
+      "weekdaysOnly": true,
+      "name": "New Teacher Training"
+    },
+    {
+      "type": "teacherProfessionalLearning",
+      "start": "2026-08-03",
+      "end": "2026-08-11",
+      "weekdaysOnly": true,
+      "name": "Professional Learning"
+    },
+    {
+      "type": "teacherProfessionalLearning",
+      "start": "2026-09-21",
+      "end": "2026-09-21",
+      "weekdaysOnly": true,
+      "name": "Professional Learning"
+    },
+    {
+      "type": "teacherProfessionalLearning",
+      "start": "2026-10-09",
+      "end": "2026-10-09",
+      "weekdaysOnly": true,
+      "name": "Parent-Teacher Conferences/Professional Learning"
+    },
+    {
+      "type": "teacherProfessionalLearning",
+      "start": "2026-11-02",
+      "end": "2026-11-03",
+      "weekdaysOnly": true,
+      "name": "Continuous Improvement Conference"
+    },
+    {
+      "type": "teacherProfessionalLearning",
+      "start": "2027-01-04",
+      "end": "2027-01-04",
+      "weekdaysOnly": true,
+      "name": "Professional Learning"
+    },
+    {
+      "type": "teacherProfessionalLearning",
+      "start": "2027-02-12",
+      "end": "2027-02-12",
+      "weekdaysOnly": true,
+      "name": "Professional Learning"
+    },
+    {
+      "type": "teacherProfessionalLearning",
+      "start": "2027-03-29",
+      "end": "2027-03-29",
+      "weekdaysOnly": true,
+      "name": "Professional Learning"
+    },
+    {
+      "type": "teacherProfessionalLearning",
+      "start": "2027-04-26",
+      "end": "2027-04-26",
+      "weekdaysOnly": true,
+      "name": "Professional Learning"
+    },
+    {
+      "type": "studentStaffHoliday",
+      "start": "2026-09-07",
+      "end": "2026-09-07",
+      "weekdaysOnly": true,
+      "name": "Labor Day"
+    },
+    {
+      "type": "studentStaffHoliday",
+      "start": "2026-10-12",
+      "end": "2026-10-13",
+      "weekdaysOnly": true,
+      "name": "Student/Staff Break"
+    },
+    {
+      "type": "studentStaffHoliday",
+      "start": "2026-11-23",
+      "end": "2026-11-27",
+      "weekdaysOnly": true,
+      "name": "Fall Break"
+    },
+    {
+      "type": "studentStaffHoliday",
+      "start": "2026-12-21",
+      "end": "2027-01-01",
+      "weekdaysOnly": true,
+      "name": "Winter Break"
+    },
+    {
+      "type": "studentStaffHoliday",
+      "start": "2027-01-18",
+      "end": "2027-01-18",
+      "weekdaysOnly": true,
+      "name": "Marin Luther King Jr. Day"
+    },
+    {
+      "type": "studentStaffHoliday",
+      "start": "2027-02-15",
+      "end": "2027-02-16",
+      "weekdaysOnly": true,
+      "name": "Student/Staff Break"
+    },
+    {
+      "type": "studentStaffHoliday",
+      "start": "2027-03-15",
+      "end": "2027-03-19",
+      "weekdaysOnly": true,
+      "name": "Spring Break"
+    },
+    {
+      "type": "studentStaffHoliday",
+      "start": "2027-03-26",
+      "end": "2027-03-26",
+      "weekdaysOnly": true,
+      "name": "Student/Staff Break"
+    },
+    {
+      "type": "earlyRelease",
+      "start": "2026-12-18",
+      "end": "2026-12-18",
+      "weekdaysOnly": true,
+      "name": "Early Release"
+    },
+    {
+      "type": "earlyRelease",
+      "start": "2027-05-27",
+      "end": "2027-05-27",
+      "weekdaysOnly": true,
+      "name": ""
+    },
+    {
+      "type": "firstLastDay",
+      "start": "2026-08-12",
+      "end": "2026-08-12",
+      "weekdaysOnly": true,
+      "name": "First Day of School"
+    },
+    {
+      "type": "firstLastDay",
+      "start": "2027-05-27",
+      "end": "2027-05-27",
+      "weekdaysOnly": true,
+      "name": "Last Day of School/Early Release"
+    }
+  ],
+  "gradingRanges": {
+    "gp6": [
+      {
+        "start": "2026-08-12",
+        "end": "2026-09-18"
+      },
+      {
+        "start": "2026-09-22",
+        "end": "2026-10-30"
+      },
+      {
+        "start": "2026-11-04",
+        "end": "2026-12-18"
+      }
+    ],
+    "gp9": [
+      {
+        "start": "2026-08-12",
+        "end": "2027-05-27"
+      }
+    ]
+  },
+  "gradingMarkers": [
+    {
+      "type": "gp6",
+      "date": "2026-08-12",
+      "side": "start"
+    },
+    {
+      "type": "gp6",
+      "date": "2026-09-18",
+      "side": "end"
+    },
+    {
+      "type": "gp6",
+      "date": "2026-09-22",
+      "side": "start"
+    },
+    {
+      "type": "gp6",
+      "date": "2026-10-30",
+      "side": "end"
+    },
+    {
+      "type": "gp6",
+      "date": "2026-11-04",
+      "side": "start"
+    },
+    {
+      "type": "gp6",
+      "date": "2026-12-18",
+      "side": "end"
+    },
+    {
+      "type": "gp9",
+      "date": "2026-08-12",
+      "side": "start"
+    },
+    {
+      "type": "gp9",
+      "date": "2027-05-27",
+      "side": "end"
+    }
+  ],
+  "importantDates": [
+    {
+      "label": "New Teacher Training",
+      "dateText": "Jul. 28-31, 2026",
+      "start": "2026-07-28",
+      "end": "2026-07-31"
+    },
+    {
+      "label": "Professional Learning",
+      "dateText": "Aug. 3-11, 2026",
+      "start": "2026-08-03",
+      "end": "2026-08-11"
+    },
+    {
+      "label": "First Day of School",
+      "dateText": "Aug. 12, 2026",
+      "start": "2026-08-12",
+      "end": "2026-08-12"
+    },
+    {
+      "label": "Labor Day",
+      "dateText": "Sep. 7, 2026",
+      "start": "2026-09-07",
+      "end": "2026-09-07"
+    },
+    {
+      "label": "Professional Learning",
+      "dateText": "Sep. 21, 2026",
+      "start": "2026-09-21",
+      "end": "2026-09-21"
+    },
+    {
+      "label": "Parent-Teacher Conferences/Professional Learning",
+      "dateText": "Oct. 9, 2026",
+      "start": "2026-10-09",
+      "end": "2026-10-09"
+    },
+    {
+      "label": "Student/Staff Break",
+      "dateText": "Oct. 12-13, 2026",
+      "start": "2026-10-12",
+      "end": "2026-10-13"
+    },
+    {
+      "label": "Continuous Improvement Conference",
+      "dateText": "Nov. 2-3, 2026",
+      "start": "2026-11-02",
+      "end": "2026-11-03"
+    },
+    {
+      "label": "Fall Break",
+      "dateText": "Nov. 23-27, 2026",
+      "start": "2026-11-23",
+      "end": "2026-11-27"
+    },
+    {
+      "label": "Early Release",
+      "dateText": "Dec. 18, 2026",
+      "start": "2026-12-18",
+      "end": "2026-12-18"
+    },
+    {
+      "label": "Winter Break",
+      "dateText": "Dec. 21, 2026-Jan. 1, 2027",
+      "start": "2026-12-21",
+      "end": "2027-01-01"
+    },
+    {
+      "label": "Professional Learning",
+      "dateText": "Jan. 4, 2027",
+      "start": "2027-01-04",
+      "end": "2027-01-04"
+    },
+    {
+      "label": "Marin Luther King Jr. Day",
+      "dateText": "Jan. 18, 2027",
+      "start": "2027-01-18",
+      "end": "2027-01-18"
+    },
+    {
+      "label": "Professional Learning",
+      "dateText": "Feb. 12, 2027",
+      "start": "2027-02-12",
+      "end": "2027-02-12"
+    },
+    {
+      "label": "Student/Staff Break",
+      "dateText": "Feb. 15-16, 2027",
+      "start": "2027-02-15",
+      "end": "2027-02-16"
+    },
+    {
+      "label": "Spring Break",
+      "dateText": "Mar. 15-19, 2027",
+      "start": "2027-03-15",
+      "end": "2027-03-19"
+    },
+    {
+      "label": "Student/Staff Break",
+      "dateText": "Mar. 26, 2027",
+      "start": "2027-03-26",
+      "end": "2027-03-26"
+    },
+    {
+      "label": "Professional Learning",
+      "dateText": "Mar. 29, 2027",
+      "start": "2027-03-29",
+      "end": "2027-03-29"
+    },
+    {
+      "label": "Professional Learning",
+      "dateText": "Apr. 26, 2027",
+      "start": "2027-04-26",
+      "end": "2027-04-26"
+    },
+    {
+      "label": "Last Day of School/Early Release",
+      "dateText": "May. 27, 2027",
+      "start": "2027-05-27",
+      "end": "2027-05-27"
+    }
+  ]
+}

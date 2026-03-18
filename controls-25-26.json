@@ -1,0 +1,13 @@
+{
+  "schoolYearLabel": "2025-2026",
+  "startYear": 2025,
+  "startMonth": 6,
+  "monthsToRender": 12,
+  "eventRules": [],
+  "gradingRanges": {
+    "gp6": [],
+    "gp9": []
+  },
+  "gradingMarkers": [],
+  "importantDates": []
+}

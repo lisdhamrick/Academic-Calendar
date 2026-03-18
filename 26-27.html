@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Leander ISD Academic Calendar 2026-2027</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="embed-controls" id="embedControls" aria-label="Embedded calendar controls"></div>
+
+    <div class="calendar-shell" id="calendarShell">
+      <main class="calendar-app" id="calendarApp">
+        <header class="app-header">
+          <div class="brand-block">
+            <img
+              class="district-logo"
+              src="./assets/district-logo.svg?v=20260304"
+              alt="Leander ISD logo"
+            />
+            <img
+              class="icon-logo"
+              src="./assets/icon-logo.svg?v=20260304"
+              alt=""
+              aria-hidden="true"
+            />
+            <div class="brand-text">
+              <h1>Academic Calendar</h1>
+            </div>
+          </div>
+          <p class="school-year" id="schoolYearLabel"></p>
+        </header>
+        <section class="language-switch" id="languageSwitch" aria-label="Language selector">
+          <div class="language-switch-controls" role="group" aria-label="Language selector">
+            <button
+              class="language-option is-active"
+              id="languageOptionEn"
+              type="button"
+              data-language="en"
+              aria-pressed="true"
+            >
+              English
+            </button>
+            <button
+              class="language-option"
+              id="languageOptionEs"
+              type="button"
+              data-language="es"
+              aria-pressed="false"
+            >
+              Español
+            </button>
+          </div>
+        </section>
+        <section class="event-filters" id="eventFilters" aria-label="Calendar event filters"></section>
+
+        <div class="app-layout">
+          <section class="calendar-grid" id="calendarGrid" aria-label="Academic calendar months"></section>
+
+          <aside class="info-panel">
+            <section>
+              <h2>Important Dates</h2>
+              <ul id="importantDates"></ul>
+            </section>
+          </aside>
+        </div>
+
+        <section class="legend" id="legend"></section>
+      </main>
+    </div>
+    <button
+      class="legend-fab"
+      id="legendFab"
+      type="button"
+      aria-controls="eventFilters"
+      aria-expanded="false"
+      aria-label="Toggle filters"
+    >
+      <span class="legend-fab-icon" aria-hidden="true"></span>
+      <span class="legend-fab-label">Filters</span>
+    </button>
+    <div class="legend-backdrop" id="legendBackdrop" aria-hidden="true"></div>
+
+    <script>
+      window.ACADEMIC_CALENDAR_CONTROLS_URL = "./controls-26-27.json";
+    </script>
+    <script src="./app.js"></script>
+  </body>
+</html>
