@@ -104,22 +104,21 @@ body {
 .language-switch-controls {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.34rem;
+  gap: 8px;
 }
 
 .language-option {
   width: 100%;
   min-width: 0;
-  min-height: 2.5rem;
   border: 1px solid #d8dce1;
   background: #ffffff;
   color: var(--brand);
-  padding: 0.56rem 1rem;
+  padding: 0.3rem 0;
   font: inherit;
-  font-size: 0.95rem;
+  font-size: 0.8rem;
   font-weight: 700;
   line-height: 1;
-  text-transform: none;
+  text-transform: uppercase;
   cursor: pointer;
   transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
   border-radius: 0;
@@ -1304,8 +1303,8 @@ body.embedded-wide.hide-info-panel .app-layout {
 
   .language-switch {
     width: min(100%, calc(100% - 2.2rem));
-    margin: 0 auto;
-    padding: 0.22rem 0.3rem 0.3rem;
+    margin: 0 auto 1rem;
+    padding: 8px;
   }
 
   .language-switch.is-collapsed,
@@ -1317,12 +1316,11 @@ body.embedded-wide.hide-info-panel .app-layout {
 
   .language-switch-controls {
     grid-template-columns: 1fr 1fr;
-    gap: 0.28rem;
+    gap: 8px;
   }
 
   .language-option {
-    min-height: 2.35rem;
-    padding: 0.58rem 0.92rem;
+    padding: 0.5rem 0;
     font-size: clamp(0.82rem, 2.5vw, 0.96rem);
     white-space: nowrap;
   }
