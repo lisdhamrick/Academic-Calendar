@@ -531,13 +531,15 @@ body {
   z-index: 1;
 }
 
-.staar-outline-path {
-  fill: none;
+.staar-outline-segment {
   stroke: var(--staar);
   stroke-width: 5px;
   stroke-linecap: round;
-  stroke-linejoin: round;
   stroke-dasharray: 0.01 11;
+}
+
+.staar-corner-dot {
+  fill: var(--staar);
 }
 
 .day-bracket-start {

@@ -1238,48 +1238,88 @@ function addBoundarySegment(segmentMap, pointMap, x1, y1, x2, y2) {
   segmentMap.set(segmentKey, { aKey, bKey });
 }
 
-function buildLoopsFromSegments(segmentMap, pointMap) {
-  const adjacency = new Map();
+function mergeLinearSegments(segmentMap, pointMap) {
+  const horizontalBuckets = new Map();
+  const verticalBuckets = new Map();
 
   segmentMap.forEach(({ aKey, bKey }) => {
-    if (!adjacency.has(aKey)) adjacency.set(aKey, new Set());
-    if (!adjacency.has(bKey)) adjacency.set(bKey, new Set());
-    adjacency.get(aKey).add(bKey);
-    adjacency.get(bKey).add(aKey);
-  });
+    const a = pointMap.get(aKey);
+    const b = pointMap.get(bKey);
+    if (!a || !b) return;
 
-  const visitedSegments = new Set();
-  const loops = [];
-
-  segmentMap.forEach(({ aKey, bKey }) => {
-    const initialSegmentKey = createSegmentKey(aKey, bKey);
-    if (visitedSegments.has(initialSegmentKey)) return;
-
-    const loop = [pointMap.get(aKey)];
-    let previousKey = aKey;
-    let currentKey = bKey;
-    visitedSegments.add(initialSegmentKey);
-
-    while (currentKey !== aKey) {
-      loop.push(pointMap.get(currentKey));
-      const neighbors = Array.from(adjacency.get(currentKey) || []);
-      const nextKey = neighbors.find((neighborKey) => neighborKey !== previousKey);
-      if (!nextKey) break;
-      visitedSegments.add(createSegmentKey(currentKey, nextKey));
-      previousKey = currentKey;
-      currentKey = nextKey;
+    if (a.y === b.y) {
+      const bucketKey = `${a.y}`;
+      if (!horizontalBuckets.has(bucketKey)) horizontalBuckets.set(bucketKey, []);
+      horizontalBuckets.get(bucketKey).push({
+        start: Math.min(a.x, b.x),
+        end: Math.max(a.x, b.x),
+        y: a.y
+      });
+      return;
     }
 
-    if (loop.length >= 2) loops.push(loop);
+    if (a.x === b.x) {
+      const bucketKey = `${a.x}`;
+      if (!verticalBuckets.has(bucketKey)) verticalBuckets.set(bucketKey, []);
+      verticalBuckets.get(bucketKey).push({
+        start: Math.min(a.y, b.y),
+        end: Math.max(a.y, b.y),
+        x: a.x
+      });
+    }
   });
 
-  return loops;
-}
+  const mergedSegments = [];
 
-function createStaarPathData(loop) {
-  if (!loop || loop.length === 0) return "";
-  const [firstPoint, ...rest] = loop;
-  return `M ${firstPoint.x} ${firstPoint.y} ${rest.map((point) => `L ${point.x} ${point.y}`).join(" ")} Z`;
+  horizontalBuckets.forEach((segments) => {
+    segments.sort((left, right) => left.start - right.start);
+    let active = null;
+
+    segments.forEach((segment) => {
+      if (!active) {
+        active = { ...segment };
+        return;
+      }
+
+      if (Math.abs(segment.start - active.end) <= 0.25) {
+        active.end = Math.max(active.end, segment.end);
+        return;
+      }
+
+      mergedSegments.push({ x1: active.start, y1: active.y, x2: active.end, y2: active.y });
+      active = { ...segment };
+    });
+
+    if (active) {
+      mergedSegments.push({ x1: active.start, y1: active.y, x2: active.end, y2: active.y });
+    }
+  });
+
+  verticalBuckets.forEach((segments) => {
+    segments.sort((top, bottom) => top.start - bottom.start);
+    let active = null;
+
+    segments.forEach((segment) => {
+      if (!active) {
+        active = { ...segment };
+        return;
+      }
+
+      if (Math.abs(segment.start - active.end) <= 0.25) {
+        active.end = Math.max(active.end, segment.end);
+        return;
+      }
+
+      mergedSegments.push({ x1: active.x, y1: active.start, x2: active.x, y2: active.end });
+      active = { ...segment };
+    });
+
+    if (active) {
+      mergedSegments.push({ x1: active.x, y1: active.start, x2: active.x, y2: active.end });
+    }
+  });
+
+  return mergedSegments;
 }
 
 function renderStaarOverlay(daysGrid, staarCells, cellMatrix) {
@@ -1328,21 +1368,41 @@ function renderStaarOverlay(daysGrid, staarCells, cellMatrix) {
     if (!leftNeighbor) addBoundarySegment(segmentMap, pointMap, left, bottom, left, top);
   });
 
-  const loops = buildLoopsFromSegments(segmentMap, pointMap);
-  if (loops.length === 0) return;
+  const mergedSegments = mergeLinearSegments(segmentMap, pointMap);
+  if (mergedSegments.length === 0) return;
 
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("class", "staar-overlay");
   svg.setAttribute("viewBox", `0 0 ${roundGeometryValue(gridWidth)} ${roundGeometryValue(gridHeight)}`);
   svg.setAttribute("aria-hidden", "true");
 
-  loops.forEach((loop) => {
-    const pathData = createStaarPathData(loop);
-    if (!pathData) return;
-    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    path.setAttribute("class", "staar-outline-path");
-    path.setAttribute("d", pathData);
-    svg.appendChild(path);
+  const cornerPoints = new Map();
+
+  mergedSegments.forEach((segment) => {
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    line.setAttribute("class", "staar-outline-segment");
+    line.setAttribute("x1", `${segment.x1}`);
+    line.setAttribute("y1", `${segment.y1}`);
+    line.setAttribute("x2", `${segment.x2}`);
+    line.setAttribute("y2", `${segment.y2}`);
+    svg.appendChild(line);
+
+    [createPointKey(segment.x1, segment.y1), createPointKey(segment.x2, segment.y2)].forEach((key) => {
+      if (cornerPoints.has(key)) return;
+      cornerPoints.set(key, {
+        x: key.split(",")[0],
+        y: key.split(",")[1]
+      });
+    });
+  });
+
+  cornerPoints.forEach(({ x, y }) => {
+    const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    dot.setAttribute("class", "staar-corner-dot");
+    dot.setAttribute("cx", `${x}`);
+    dot.setAttribute("cy", `${y}`);
+    dot.setAttribute("r", "2.6");
+    svg.appendChild(dot);
   });
 
   daysGrid.appendChild(svg);
