@@ -171,6 +171,14 @@
       "weekdaysOnly": true,
       "name": "Last Day of School/Early Release",
       "enabled": true
+    },
+    {
+      "type": "proposedStaar",
+      "start": "2027-04-05",
+      "end": "2027-04-30",
+      "weekdaysOnly": true,
+      "name": "",
+      "enabled": true
     }
   ],
   "gradingRanges": {
