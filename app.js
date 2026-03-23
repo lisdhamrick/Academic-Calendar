@@ -1198,9 +1198,16 @@ function getCellVisualData(cell, eventLookup, markerLookup) {
     .sort()
     .join("|");
 
+  if (eventSignature) {
+    return {
+      hasVisual: true,
+      signature: `e:${eventSignature}`
+    };
+  }
+
   return {
-    hasVisual: dayEvents.length > 0 || dayMarkers.length > 0,
-    signature: `e:${eventSignature};m:${markerSignature}`
+    hasVisual: dayMarkers.length > 0,
+    signature: markerSignature ? `m:${markerSignature}` : ""
   };
 }
 
