@@ -1285,18 +1285,18 @@ function createStaarPathData(loop) {
 function renderStaarOverlay(daysGrid, staarCells) {
   if (!daysGrid || staarCells.length === 0) return;
 
-  const gridRect = daysGrid.getBoundingClientRect();
-  if (!gridRect.width || !gridRect.height) return;
+  const gridWidth = daysGrid.clientWidth;
+  const gridHeight = daysGrid.clientHeight;
+  if (!gridWidth || !gridHeight) return;
 
   const segmentMap = new Map();
   const pointMap = new Map();
 
   staarCells.forEach((cell) => {
-    const rect = cell.getBoundingClientRect();
-    const left = rect.left - gridRect.left;
-    const top = rect.top - gridRect.top;
-    const right = rect.right - gridRect.left;
-    const bottom = rect.bottom - gridRect.top;
+    const left = cell.offsetLeft;
+    const top = cell.offsetTop;
+    const right = left + cell.offsetWidth;
+    const bottom = top + cell.offsetHeight;
 
     addBoundarySegment(segmentMap, pointMap, left, top, right, top);
     addBoundarySegment(segmentMap, pointMap, right, top, right, bottom);
@@ -1309,10 +1309,7 @@ function renderStaarOverlay(daysGrid, staarCells) {
 
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("class", "staar-overlay");
-  svg.setAttribute(
-    "viewBox",
-    `0 0 ${roundGeometryValue(gridRect.width)} ${roundGeometryValue(gridRect.height)}`
-  );
+  svg.setAttribute("viewBox", `0 0 ${roundGeometryValue(gridWidth)} ${roundGeometryValue(gridHeight)}`);
   svg.setAttribute("aria-hidden", "true");
 
   loops.forEach((loop) => {
