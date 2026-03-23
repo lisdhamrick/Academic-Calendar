@@ -668,7 +668,7 @@ document.getElementById("resetDefaults").addEventListener("click", async () => {
   state.gradingGroups = deepClone(fresh.gradingGroups || { gp6: [], gp9: [] });
   renderAll();
   isDirty = false;
-  setStatus("Reloaded values from shared calendar-controls.json.");
+  setStatus(`Reloaded values from ${CONTROLS_URL.replace("./", "")}.`);
 });
 
 document.getElementById("clearSaved").addEventListener("click", () => {
