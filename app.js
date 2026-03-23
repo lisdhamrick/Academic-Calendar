@@ -1210,195 +1210,6 @@ function shouldSplitBetweenCells(leftCell, rightCell, eventLookup, markerLookup)
   return left.hasVisual && right.hasVisual && left.signature !== right.signature;
 }
 
-function roundGeometryValue(value) {
-  return Math.round(value * 100) / 100;
-}
-
-function createPointKey(x, y) {
-  return `${roundGeometryValue(x)},${roundGeometryValue(y)}`;
-}
-
-function mergeLinearSegments(segments) {
-  const buckets = new Map();
-
-  segments.forEach((segment) => {
-    const axisKey =
-      segment.side === "top" || segment.side === "bottom"
-        ? `${segment.side}:${segment.y1}`
-        : `${segment.side}:${segment.x1}`;
-    if (!buckets.has(axisKey)) buckets.set(axisKey, []);
-    buckets.get(axisKey).push(segment);
-  });
-
-  const mergedSegments = [];
-
-  buckets.forEach((bucketSegments, axisKey) => {
-    const isHorizontal = axisKey.startsWith("top:") || axisKey.startsWith("bottom:");
-    bucketSegments.sort((a, b) => (isHorizontal ? a.x1 - b.x1 : a.y1 - b.y1));
-    let active = null;
-
-    bucketSegments.forEach((segment) => {
-      if (!active) {
-        active = { ...segment };
-        return;
-      }
-
-      const touches = isHorizontal
-        ? Math.abs(segment.x1 - active.x2) <= 0.25
-        : Math.abs(segment.y1 - active.y2) <= 0.25;
-
-      if (touches) {
-        if (isHorizontal) active.x2 = Math.max(active.x2, segment.x2);
-        else active.y2 = Math.max(active.y2, segment.y2);
-        return;
-      }
-
-      mergedSegments.push(active);
-      active = { ...segment };
-    });
-
-    if (active) mergedSegments.push(active);
-  });
-
-  return mergedSegments;
-}
-
-function getInsetSegment(segment, inset) {
-  if (!inset) return { ...segment };
-
-  if (segment.side === "top") {
-    return { ...segment, x1: segment.x1 + inset, x2: segment.x2 - inset, y1: segment.y1 - inset, y2: segment.y2 - inset };
-  }
-
-  if (segment.side === "bottom") {
-    return { ...segment, x1: segment.x1 + inset, x2: segment.x2 - inset, y1: segment.y1 + inset, y2: segment.y2 + inset };
-  }
-
-  if (segment.side === "left") {
-    return { ...segment, x1: segment.x1 - inset, x2: segment.x2 - inset, y1: segment.y1 + inset, y2: segment.y2 - inset };
-  }
-
-  return { ...segment, x1: segment.x1 + inset, x2: segment.x2 + inset, y1: segment.y1 + inset, y2: segment.y2 - inset };
-}
-
-function createStaarDot(svg, x, y, radius, className = "staar-dot") {
-  const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-  dot.setAttribute("class", className);
-  dot.setAttribute("cx", `${roundGeometryValue(x)}`);
-  dot.setAttribute("cy", `${roundGeometryValue(y)}`);
-  dot.setAttribute("r", `${radius}`);
-  svg.appendChild(dot);
-}
-
-function addDotsForSegment(svg, segment, options) {
-  const dx = segment.x2 - segment.x1;
-  const dy = segment.y2 - segment.y1;
-  const length = Math.hypot(dx, dy);
-  if (length <= 0) return;
-
-  const minGap = options.minGap;
-  const maxGap = options.maxGap;
-  const targetGap = options.targetGap;
-  const minIntervals = Math.max(1, Math.ceil(length / maxGap));
-  const maxIntervals = Math.max(minIntervals, Math.floor(length / minGap));
-  const intervalCount = Math.min(maxIntervals, Math.max(minIntervals, Math.round(length / targetGap)));
-
-  for (let index = 1; index < intervalCount; index += 1) {
-    const ratio = index / intervalCount;
-    createStaarDot(
-      svg,
-      segment.x1 + dx * ratio,
-      segment.y1 + dy * ratio,
-      options.dotRadius
-    );
-  }
-}
-
-function renderStaarOverlay(daysGrid, staarCells, cellMatrix) {
-  if (!daysGrid || staarCells.length === 0 || !cellMatrix?.length) return;
-
-  const gridWidth = daysGrid.clientWidth;
-  const gridHeight = daysGrid.clientHeight;
-  if (!gridWidth || !gridHeight) return;
-
-  const xStarts = [];
-  const xEnds = [];
-  const yStarts = [];
-  const yEnds = [];
-
-  for (let columnIndex = 0; columnIndex < 7; columnIndex += 1) {
-    const sampleCell = cellMatrix[0]?.[columnIndex];
-    if (!sampleCell) return;
-    xStarts[columnIndex] = sampleCell.offsetLeft;
-    xEnds[columnIndex] = sampleCell.offsetLeft + sampleCell.offsetWidth;
-  }
-
-  for (let rowIndex = 0; rowIndex < cellMatrix.length; rowIndex += 1) {
-    const sampleCell = cellMatrix[rowIndex]?.[0];
-    if (!sampleCell) return;
-    yStarts[rowIndex] = sampleCell.offsetTop;
-    yEnds[rowIndex] = sampleCell.offsetTop + sampleCell.offsetHeight;
-  }
-
-  const occupied = new Set(staarCells.map(({ rowIndex, columnIndex }) => `${rowIndex}:${columnIndex}`));
-  const rawSegments = [];
-
-  staarCells.forEach(({ rowIndex, columnIndex }) => {
-    const left = xStarts[columnIndex];
-    const right = xEnds[columnIndex];
-    const top = yStarts[rowIndex];
-    const bottom = yEnds[rowIndex];
-    const topNeighbor = occupied.has(`${rowIndex - 1}:${columnIndex}`);
-    const rightNeighbor = occupied.has(`${rowIndex}:${columnIndex + 1}`);
-    const bottomNeighbor = occupied.has(`${rowIndex + 1}:${columnIndex}`);
-    const leftNeighbor = occupied.has(`${rowIndex}:${columnIndex - 1}`);
-
-    if (!topNeighbor) rawSegments.push({ side: "top", x1: left, y1: top, x2: right, y2: top });
-    if (!rightNeighbor) rawSegments.push({ side: "right", x1: right, y1: top, x2: right, y2: bottom });
-    if (!bottomNeighbor) rawSegments.push({ side: "bottom", x1: left, y1: bottom, x2: right, y2: bottom });
-    if (!leftNeighbor) rawSegments.push({ side: "left", x1: left, y1: top, x2: left, y2: bottom });
-  });
-
-  const mergedSegments = mergeLinearSegments(rawSegments);
-  if (mergedSegments.length === 0) return;
-
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("class", "staar-overlay");
-  svg.setAttribute("viewBox", `0 0 ${roundGeometryValue(gridWidth)} ${roundGeometryValue(gridHeight)}`);
-  svg.setAttribute("preserveAspectRatio", "none");
-  svg.setAttribute("aria-hidden", "true");
-
-  const dotOptions = {
-    minGap: 8.75,
-    maxGap: 11.75,
-    targetGap: 10.15,
-    dotRadius: 1.75,
-    cornerRadius: 2.15,
-    inset: 2.25
-  };
-  const cornerPoints = new Map();
-
-  mergedSegments.forEach((segment) => {
-    const insetSegment = getInsetSegment(segment, dotOptions.inset);
-    addDotsForSegment(svg, insetSegment, dotOptions);
-
-    [
-      createPointKey(insetSegment.x1, insetSegment.y1),
-      createPointKey(insetSegment.x2, insetSegment.y2)
-    ].forEach((key) => {
-      if (cornerPoints.has(key)) return;
-      const [x, y] = key.split(",").map(Number);
-      cornerPoints.set(key, { x, y });
-    });
-  });
-
-  cornerPoints.forEach(({ x, y }) => {
-    createStaarDot(svg, x, y, dotOptions.cornerRadius, "staar-corner-dot");
-  });
-
-  daysGrid.appendChild(svg);
-}
-
 function renderCalendar() {
   const t = getCurrentTranslations();
   const schoolYearLabel = document.getElementById("schoolYearLabel");
@@ -1503,18 +1314,13 @@ function renderCalendar() {
       if (weeks.length === 6 && weekHasOnlyWeekendMonthDays(weeks[weeks.length - 1])) weeks.pop();
     }
 
-    const staarCells = [];
-    const cellMatrix = [];
-
-    weeks.forEach((week, weekIndex) => {
-      cellMatrix[weekIndex] = [];
+    weeks.forEach((week) => {
       week.forEach((cell, dayIndex) => {
         if (cell.type === "spacer") {
           const spacer = document.createElement("li");
           spacer.className = "day-cell spacer";
           spacer.innerHTML = '<span class="day-glyph" aria-hidden="true"><span class="day-dot"></span></span>';
           daysGrid.appendChild(spacer);
-          cellMatrix[weekIndex][dayIndex] = spacer;
           return;
         }
 
@@ -1563,10 +1369,6 @@ function renderCalendar() {
           dayCell.appendChild(frameTag);
         }
 
-        if (dayEvents.includes("proposedStaar")) {
-          staarCells.push({ rowIndex: weekIndex, columnIndex: dayIndex });
-        }
-
         dayCell.dataset.date = cell.key;
 
         const nextCell = dayIndex < 6 ? week[dayIndex + 1] : null;
@@ -1575,14 +1377,12 @@ function renderCalendar() {
         }
 
         daysGrid.appendChild(dayCell);
-        cellMatrix[weekIndex][dayIndex] = dayCell;
         if (!dayCellMap.has(cell.key)) dayCellMap.set(cell.key, []);
         dayCellMap.get(cell.key).push(dayCell);
       });
     });
 
     calendarGrid.appendChild(monthCard);
-    renderStaarOverlay(daysGrid, staarCells, cellMatrix);
   }
 
   Object.values(CALENDAR_CONFIG.eventTypes).forEach((eventType) => {

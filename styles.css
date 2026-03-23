@@ -15,7 +15,7 @@
   --first-last: #b18fc2;
   --gp6: #005987;
   --gp9: #ffc000;
-  --staar: #005987;
+  --staar: #ffb442;
   --day-slot-h: clamp(1.3rem, 0.18vw + 1.22rem, 1.48rem);
   --marker-depth: clamp(0.24rem, 0.08vw + 0.22rem, 0.38rem);
   --marker-gap: 1px;
@@ -498,7 +498,7 @@ body {
 }
 
 .event-staar {
-  background: transparent;
+  background: var(--staar);
 }
 
 .day-cell-er .day-number {
@@ -519,21 +519,6 @@ body {
 
 .day-bracket-gp9 {
   --marker-color: var(--gp9);
-}
-
-.staar-overlay {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  overflow: visible;
-  z-index: 1;
-}
-
-.staar-dot,
-.staar-corner-dot {
-  fill: var(--staar);
 }
 
 .day-bracket-start {
