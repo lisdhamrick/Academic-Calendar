@@ -171,6 +171,14 @@
       "weekdaysOnly": true,
       "name": "Last Day of School/Early Release",
       "enabled": true
+    },
+    {
+      "type": "proposedStaar",
+      "start": "2027-04-05",
+      "end": "2027-04-30",
+      "weekdaysOnly": true,
+      "name": "Proposed STAAR Testing",
+      "enabled": true
     }
   ],
   "gradingRanges": {
@@ -308,6 +316,12 @@
       "dateText": "March 29, 2027",
       "start": "2027-03-29",
       "end": "2027-03-29"
+    },
+    {
+      "label": "Proposed STAAR Testing",
+      "dateText": "April 5 - 30, 2027",
+      "start": "2027-04-05",
+      "end": "2027-04-30"
     },
     {
       "label": "Professional Learning",
