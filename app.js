@@ -1210,33 +1210,121 @@ function shouldSplitBetweenCells(leftCell, rightCell, eventLookup, markerLookup)
   return left.hasVisual && right.hasVisual && left.signature !== right.signature;
 }
 
-function cellHasEventType(cell, eventLookup, eventType) {
-  if (!cell || cell.type !== "day") return false;
-  const dayEvents = eventLookup[cell.key] || [];
-  return dayEvents.includes(eventType);
+function roundGeometryValue(value) {
+  return Math.round(value * 100) / 100;
 }
 
-function addStaarOutline(dayCell, week, weekIndex, dayIndex, weeks, eventLookup) {
-  const leftCell = dayIndex > 0 ? week[dayIndex - 1] : null;
-  const rightCell = dayIndex < 6 ? week[dayIndex + 1] : null;
-  const upperWeek = weekIndex > 0 ? weeks[weekIndex - 1] : null;
-  const lowerWeek = weekIndex < weeks.length - 1 ? weeks[weekIndex + 1] : null;
-  const topCell = upperWeek ? upperWeek[dayIndex] : null;
-  const bottomCell = lowerWeek ? lowerWeek[dayIndex] : null;
+function createPointKey(x, y) {
+  return `${roundGeometryValue(x)},${roundGeometryValue(y)}`;
+}
 
-  const edges = {
-    top: !cellHasEventType(topCell, eventLookup, "proposedStaar"),
-    right: !cellHasEventType(rightCell, eventLookup, "proposedStaar"),
-    bottom: !cellHasEventType(bottomCell, eventLookup, "proposedStaar"),
-    left: !cellHasEventType(leftCell, eventLookup, "proposedStaar")
-  };
+function createSegmentKey(aKey, bKey) {
+  return [aKey, bKey].sort().join("|");
+}
 
-  Object.entries(edges).forEach(([side, shouldRender]) => {
-    if (!shouldRender) return;
-    const edge = document.createElement("span");
-    edge.className = `staar-edge staar-edge-${side}`;
-    dayCell.appendChild(edge);
+function addBoundarySegment(segmentMap, pointMap, x1, y1, x2, y2) {
+  const aKey = createPointKey(x1, y1);
+  const bKey = createPointKey(x2, y2);
+  const segmentKey = createSegmentKey(aKey, bKey);
+
+  pointMap.set(aKey, { x: roundGeometryValue(x1), y: roundGeometryValue(y1) });
+  pointMap.set(bKey, { x: roundGeometryValue(x2), y: roundGeometryValue(y2) });
+
+  if (segmentMap.has(segmentKey)) {
+    segmentMap.delete(segmentKey);
+    return;
+  }
+
+  segmentMap.set(segmentKey, { aKey, bKey });
+}
+
+function buildLoopsFromSegments(segmentMap, pointMap) {
+  const adjacency = new Map();
+
+  segmentMap.forEach(({ aKey, bKey }) => {
+    if (!adjacency.has(aKey)) adjacency.set(aKey, new Set());
+    if (!adjacency.has(bKey)) adjacency.set(bKey, new Set());
+    adjacency.get(aKey).add(bKey);
+    adjacency.get(bKey).add(aKey);
   });
+
+  const visitedSegments = new Set();
+  const loops = [];
+
+  segmentMap.forEach(({ aKey, bKey }) => {
+    const initialSegmentKey = createSegmentKey(aKey, bKey);
+    if (visitedSegments.has(initialSegmentKey)) return;
+
+    const loop = [pointMap.get(aKey)];
+    let previousKey = aKey;
+    let currentKey = bKey;
+    visitedSegments.add(initialSegmentKey);
+
+    while (currentKey !== aKey) {
+      loop.push(pointMap.get(currentKey));
+      const neighbors = Array.from(adjacency.get(currentKey) || []);
+      const nextKey = neighbors.find((neighborKey) => neighborKey !== previousKey);
+      if (!nextKey) break;
+      visitedSegments.add(createSegmentKey(currentKey, nextKey));
+      previousKey = currentKey;
+      currentKey = nextKey;
+    }
+
+    if (loop.length >= 2) loops.push(loop);
+  });
+
+  return loops;
+}
+
+function createStaarPathData(loop) {
+  if (!loop || loop.length === 0) return "";
+  const [firstPoint, ...rest] = loop;
+  return `M ${firstPoint.x} ${firstPoint.y} ${rest.map((point) => `L ${point.x} ${point.y}`).join(" ")} Z`;
+}
+
+function renderStaarOverlay(daysGrid, staarCells) {
+  if (!daysGrid || staarCells.length === 0) return;
+
+  const gridRect = daysGrid.getBoundingClientRect();
+  if (!gridRect.width || !gridRect.height) return;
+
+  const segmentMap = new Map();
+  const pointMap = new Map();
+
+  staarCells.forEach((cell) => {
+    const rect = cell.getBoundingClientRect();
+    const left = rect.left - gridRect.left;
+    const top = rect.top - gridRect.top;
+    const right = rect.right - gridRect.left;
+    const bottom = rect.bottom - gridRect.top;
+
+    addBoundarySegment(segmentMap, pointMap, left, top, right, top);
+    addBoundarySegment(segmentMap, pointMap, right, top, right, bottom);
+    addBoundarySegment(segmentMap, pointMap, right, bottom, left, bottom);
+    addBoundarySegment(segmentMap, pointMap, left, bottom, left, top);
+  });
+
+  const loops = buildLoopsFromSegments(segmentMap, pointMap);
+  if (loops.length === 0) return;
+
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("class", "staar-overlay");
+  svg.setAttribute(
+    "viewBox",
+    `0 0 ${roundGeometryValue(gridRect.width)} ${roundGeometryValue(gridRect.height)}`
+  );
+  svg.setAttribute("aria-hidden", "true");
+
+  loops.forEach((loop) => {
+    const pathData = createStaarPathData(loop);
+    if (!pathData) return;
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("class", "staar-outline-path");
+    path.setAttribute("d", pathData);
+    svg.appendChild(path);
+  });
+
+  daysGrid.appendChild(svg);
 }
 
 function renderCalendar() {
@@ -1343,7 +1431,9 @@ function renderCalendar() {
       if (weeks.length === 6 && weekHasOnlyWeekendMonthDays(weeks[weeks.length - 1])) weeks.pop();
     }
 
-    weeks.forEach((week, weekIndex) => {
+    const staarCells = [];
+
+    weeks.forEach((week) => {
       week.forEach((cell, dayIndex) => {
         if (cell.type === "spacer") {
           const spacer = document.createElement("li");
@@ -1398,9 +1488,7 @@ function renderCalendar() {
           dayCell.appendChild(frameTag);
         }
 
-        if (dayEvents.includes("proposedStaar")) {
-          addStaarOutline(dayCell, week, weekIndex, dayIndex, weeks, eventLookup);
-        }
+        if (dayEvents.includes("proposedStaar")) staarCells.push(dayCell);
 
         dayCell.dataset.date = cell.key;
 
@@ -1416,6 +1504,7 @@ function renderCalendar() {
     });
 
     calendarGrid.appendChild(monthCard);
+    renderStaarOverlay(daysGrid, staarCells);
   }
 
   Object.values(CALENDAR_CONFIG.eventTypes).forEach((eventType) => {
