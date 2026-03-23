@@ -160,6 +160,21 @@ const EMBED_RATIO_BREAKPOINT = 4 / 3;
 const urlParams = new URLSearchParams(window.location.search);
 const LANGUAGE_STORAGE_KEY = "academic-calendar-language";
 const DESKTOP_LANGUAGE_CONTROL_QUERY = window.matchMedia("(min-width: 621px), (min-aspect-ratio: 4/3)");
+const EVENT_TYPE_PRIORITY = {
+  earlyRelease: 0,
+  firstLastDay: 1,
+  teacherProfessionalLearning: 2,
+  newTeacherTraining: 3,
+  studentStaffHoliday: 4,
+  proposedStaar: 5
+};
+const FILLED_EVENT_TYPES = new Set([
+  "earlyRelease",
+  "teacherProfessionalLearning",
+  "newTeacherTraining",
+  "studentStaffHoliday",
+  "proposedStaar"
+]);
 
 const TRANSLATIONS = {
   en: {
@@ -515,6 +530,9 @@ function buildEventLookup(events) {
   return events.reduce((lookup, event) => {
     if (!lookup[event.date]) lookup[event.date] = [];
     lookup[event.date].push(event.type);
+    lookup[event.date].sort(
+      (left, right) => (EVENT_TYPE_PRIORITY[left] ?? 99) - (EVENT_TYPE_PRIORITY[right] ?? 99)
+    );
     return lookup;
   }, {});
 }
@@ -1148,6 +1166,24 @@ function resolveAccentColorForType(type) {
   return "#ffc000";
 }
 
+function getHighestPriorityEventType(eventTypes) {
+  if (!Array.isArray(eventTypes) || eventTypes.length === 0) return "";
+  return eventTypes
+    .slice()
+    .sort((left, right) => (EVENT_TYPE_PRIORITY[left] ?? 99) - (EVENT_TYPE_PRIORITY[right] ?? 99))[0];
+}
+
+function sortEntriesByPriority(entries) {
+  return entries
+    .slice()
+    .sort((left, right) => {
+      const priorityDelta =
+        (EVENT_TYPE_PRIORITY[left.type] ?? 99) - (EVENT_TYPE_PRIORITY[right.type] ?? 99);
+      if (priorityDelta !== 0) return priorityDelta;
+      return (left.start || "").localeCompare(right.start || "");
+    });
+}
+
 function buildNamedImportantFromEventRules(rules) {
   const entries = [];
   rules.forEach((rule, index) => {
@@ -1346,6 +1382,11 @@ function renderCalendar() {
           });
         }
 
+        const dominantEventType = getHighestPriorityEventType(dayEvents);
+        if (FILLED_EVENT_TYPES.has(dominantEventType)) {
+          dayCell.style.backgroundColor = resolveAccentColorForType(dominantEventType);
+        }
+
         if (dayEvents.includes("earlyRelease")) {
           dayCell.classList.add("day-cell-er");
           dayCell.innerHTML = `<span class="day-glyph"><span class="day-number er-label">${t.earlyReleaseBadge}</span></span>`;
@@ -1450,7 +1491,7 @@ function renderCalendar() {
 
   function getMatchesForDate(dateKey) {
     const relatedIds = dateToImportantIds.get(dateKey) || [];
-    return relatedIds.map((id) => importantById.get(id)).filter(Boolean);
+    return sortEntriesByPriority(relatedIds.map((id) => importantById.get(id)).filter(Boolean));
   }
 
   function applyHighlightAndTooltip(matches, anchorEl, highlightItemId = "") {
