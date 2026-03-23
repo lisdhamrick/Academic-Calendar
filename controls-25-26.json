@@ -3,11 +3,482 @@
   "startYear": 2025,
   "startMonth": 6,
   "monthsToRender": 12,
-  "eventRules": [],
+  "eventRules": [
+    {
+      "type": "newTeacherTraining",
+      "start": "2025-07-29",
+      "end": "2025-08-01",
+      "weekdaysOnly": true,
+      "name": "New Teacher Training",
+      "enabled": true
+    },
+    {
+      "type": "teacherProfessionalLearning",
+      "start": "2025-08-04",
+      "end": "2025-08-12",
+      "weekdaysOnly": true,
+      "name": "Professional Learning",
+      "enabled": true
+    },
+    {
+      "type": "teacherProfessionalLearning",
+      "start": "2025-09-22",
+      "end": "2025-09-22",
+      "weekdaysOnly": true,
+      "name": "Professional Learning",
+      "enabled": true
+    },
+    {
+      "type": "teacherProfessionalLearning",
+      "start": "2025-10-20",
+      "end": "2025-10-20",
+      "weekdaysOnly": true,
+      "name": "Professional Learning",
+      "enabled": true
+    },
+    {
+      "type": "teacherProfessionalLearning",
+      "start": "2025-11-03",
+      "end": "2025-11-04",
+      "weekdaysOnly": true,
+      "name": "Continuous Improvement Conference",
+      "enabled": true
+    },
+    {
+      "type": "teacherProfessionalLearning",
+      "start": "2026-01-05",
+      "end": "2026-01-05",
+      "weekdaysOnly": true,
+      "name": "Professional Learning",
+      "enabled": true
+    },
+    {
+      "type": "teacherProfessionalLearning",
+      "start": "2026-02-16",
+      "end": "2026-02-16",
+      "weekdaysOnly": true,
+      "name": "Professional Learning",
+      "enabled": true
+    },
+    {
+      "type": "teacherProfessionalLearning",
+      "start": "2026-03-23",
+      "end": "2026-03-23",
+      "weekdaysOnly": true,
+      "name": "Professional Learning",
+      "enabled": true
+    },
+    {
+      "type": "teacherProfessionalLearning",
+      "start": "2026-04-06",
+      "end": "2026-04-06",
+      "weekdaysOnly": true,
+      "name": "Professional Learning",
+      "enabled": true
+    },
+    {
+      "type": "studentStaffHoliday",
+      "start": "2025-09-01",
+      "end": "2025-09-01",
+      "weekdaysOnly": true,
+      "name": "Labor Day",
+      "enabled": true
+    },
+    {
+      "type": "studentStaffHoliday",
+      "start": "2025-10-16",
+      "end": "2025-10-17",
+      "weekdaysOnly": true,
+      "name": "Student/Staff Break",
+      "enabled": true
+    },
+    {
+      "type": "studentStaffHoliday",
+      "start": "2025-11-24",
+      "end": "2025-11-28",
+      "weekdaysOnly": true,
+      "name": "Fall Break",
+      "enabled": true
+    },
+    {
+      "type": "studentStaffHoliday",
+      "start": "2025-12-22",
+      "end": "2026-01-02",
+      "weekdaysOnly": true,
+      "name": "Winter Break",
+      "enabled": true
+    },
+    {
+      "type": "studentStaffHoliday",
+      "start": "2026-01-19",
+      "end": "2026-01-19",
+      "weekdaysOnly": true,
+      "name": "Martin Luther King Jr. Day",
+      "enabled": true
+    },
+    {
+      "type": "studentStaffHoliday",
+      "start": "2026-02-12",
+      "end": "2026-02-13",
+      "weekdaysOnly": true,
+      "name": "Student/Staff Break",
+      "enabled": true
+    },
+    {
+      "type": "studentStaffHoliday",
+      "start": "2026-03-16",
+      "end": "2026-03-20",
+      "weekdaysOnly": true,
+      "name": "Spring Break",
+      "enabled": true
+    },
+    {
+      "type": "studentStaffHoliday",
+      "start": "2026-04-03",
+      "end": "2026-04-03",
+      "weekdaysOnly": true,
+      "name": "Student/Staff Break",
+      "enabled": true
+    },
+    {
+      "type": "studentStaffHoliday",
+      "start": "2026-05-25",
+      "end": "2026-05-25",
+      "weekdaysOnly": true,
+      "name": "Student/Staff Break",
+      "enabled": true
+    },
+    {
+      "type": "earlyRelease",
+      "start": "2025-12-19",
+      "end": "2025-12-19",
+      "weekdaysOnly": true,
+      "name": "Early Release",
+      "enabled": true
+    },
+    {
+      "type": "earlyRelease",
+      "start": "2026-05-29",
+      "end": "2026-05-29",
+      "weekdaysOnly": true,
+      "name": "",
+      "enabled": true
+    },
+    {
+      "type": "firstLastDay",
+      "start": "2025-08-13",
+      "end": "2025-08-13",
+      "weekdaysOnly": true,
+      "name": "First Day of School",
+      "enabled": true
+    },
+    {
+      "type": "firstLastDay",
+      "start": "2026-05-29",
+      "end": "2026-05-29",
+      "weekdaysOnly": true,
+      "name": "Last Day of School/Early Release",
+      "enabled": true
+    },
+    {
+      "type": "proposedStaar",
+      "start": "2026-04-07",
+      "end": "2026-05-01",
+      "weekdaysOnly": true,
+      "name": "Proposed STAAR Testing",
+      "enabled": true
+    }
+  ],
   "gradingRanges": {
-    "gp6": [],
-    "gp9": []
+    "gp6": [
+      {
+        "start": "2025-08-13",
+        "end": "2025-09-19",
+        "enabled": true
+      },
+      {
+        "start": "2025-09-23",
+        "end": "2025-11-07",
+        "enabled": true
+      },
+      {
+        "start": "2025-11-10",
+        "end": "2025-12-19",
+        "enabled": true
+      },
+      {
+        "start": "2026-01-06",
+        "end": "2026-02-20",
+        "enabled": true
+      },
+      {
+        "start": "2026-02-23",
+        "end": "2026-04-17",
+        "enabled": true
+      },
+      {
+        "start": "2026-04-20",
+        "end": "2026-05-29",
+        "enabled": true
+      }
+    ],
+    "gp9": [
+      {
+        "start": "2025-08-13",
+        "end": "2025-10-10",
+        "enabled": true
+      },
+      {
+        "start": "2025-10-13",
+        "end": "2025-12-19",
+        "enabled": true
+      },
+      {
+        "start": "2026-01-06",
+        "end": "2026-03-13",
+        "enabled": true
+      },
+      {
+        "start": "2026-03-24",
+        "end": "2026-05-29",
+        "enabled": true
+      }
+    ]
   },
-  "gradingMarkers": [],
-  "importantDates": []
+  "gradingMarkers": [
+    {
+      "type": "gp6",
+      "date": "2025-08-13",
+      "side": "start"
+    },
+    {
+      "type": "gp6",
+      "date": "2025-09-19",
+      "side": "end"
+    },
+    {
+      "type": "gp6",
+      "date": "2025-09-23",
+      "side": "start"
+    },
+    {
+      "type": "gp6",
+      "date": "2025-11-07",
+      "side": "end"
+    },
+    {
+      "type": "gp6",
+      "date": "2025-11-10",
+      "side": "start"
+    },
+    {
+      "type": "gp6",
+      "date": "2025-12-19",
+      "side": "end"
+    },
+    {
+      "type": "gp6",
+      "date": "2026-01-06",
+      "side": "start"
+    },
+    {
+      "type": "gp6",
+      "date": "2026-02-20",
+      "side": "end"
+    },
+    {
+      "type": "gp6",
+      "date": "2026-02-23",
+      "side": "start"
+    },
+    {
+      "type": "gp6",
+      "date": "2026-04-17",
+      "side": "end"
+    },
+    {
+      "type": "gp6",
+      "date": "2026-04-20",
+      "side": "start"
+    },
+    {
+      "type": "gp6",
+      "date": "2026-05-29",
+      "side": "end"
+    },
+    {
+      "type": "gp9",
+      "date": "2025-08-13",
+      "side": "start"
+    },
+    {
+      "type": "gp9",
+      "date": "2025-10-10",
+      "side": "end"
+    },
+    {
+      "type": "gp9",
+      "date": "2025-10-13",
+      "side": "start"
+    },
+    {
+      "type": "gp9",
+      "date": "2025-12-19",
+      "side": "end"
+    },
+    {
+      "type": "gp9",
+      "date": "2026-01-06",
+      "side": "start"
+    },
+    {
+      "type": "gp9",
+      "date": "2026-03-13",
+      "side": "end"
+    },
+    {
+      "type": "gp9",
+      "date": "2026-03-24",
+      "side": "start"
+    },
+    {
+      "type": "gp9",
+      "date": "2026-05-29",
+      "side": "end"
+    }
+  ],
+  "importantDates": [
+    {
+      "label": "New Teacher Training",
+      "dateText": "July 29 - Aug. 1, 2025",
+      "start": "2025-07-29",
+      "end": "2025-08-01"
+    },
+    {
+      "label": "Professional Learning",
+      "dateText": "Aug. 4 - 12, 2025",
+      "start": "2025-08-04",
+      "end": "2025-08-12"
+    },
+    {
+      "label": "First Day of School",
+      "dateText": "Aug. 13, 2025",
+      "start": "2025-08-13",
+      "end": "2025-08-13"
+    },
+    {
+      "label": "Labor Day",
+      "dateText": "Sept. 1, 2025",
+      "start": "2025-09-01",
+      "end": "2025-09-01"
+    },
+    {
+      "label": "Professional Learning",
+      "dateText": "Sept. 22, 2025",
+      "start": "2025-09-22",
+      "end": "2025-09-22"
+    },
+    {
+      "label": "Student/Staff Break",
+      "dateText": "Oct. 16 - 17, 2025",
+      "start": "2025-10-16",
+      "end": "2025-10-17"
+    },
+    {
+      "label": "Professional Learning",
+      "dateText": "Oct. 20, 2025",
+      "start": "2025-10-20",
+      "end": "2025-10-20"
+    },
+    {
+      "label": "Continuous Improvement Conference",
+      "dateText": "Nov. 3 - 4, 2025",
+      "start": "2025-11-03",
+      "end": "2025-11-04"
+    },
+    {
+      "label": "Fall Break",
+      "dateText": "Nov. 24 - 28, 2025",
+      "start": "2025-11-24",
+      "end": "2025-11-28"
+    },
+    {
+      "label": "Early Release",
+      "dateText": "Dec. 19, 2025",
+      "start": "2025-12-19",
+      "end": "2025-12-19"
+    },
+    {
+      "label": "Winter Break",
+      "dateText": "Dec. 22, 2025 - Jan. 2, 2026",
+      "start": "2025-12-22",
+      "end": "2026-01-02"
+    },
+    {
+      "label": "Professional Learning",
+      "dateText": "Jan. 5, 2026",
+      "start": "2026-01-05",
+      "end": "2026-01-05"
+    },
+    {
+      "label": "Martin Luther King Jr. Day",
+      "dateText": "Jan. 19, 2026",
+      "start": "2026-01-19",
+      "end": "2026-01-19"
+    },
+    {
+      "label": "Student/Staff Break",
+      "dateText": "Feb. 12 - 13, 2026",
+      "start": "2026-02-12",
+      "end": "2026-02-13"
+    },
+    {
+      "label": "Professional Learning",
+      "dateText": "Feb. 16, 2026",
+      "start": "2026-02-16",
+      "end": "2026-02-16"
+    },
+    {
+      "label": "Spring Break",
+      "dateText": "March 16 - 20, 2026",
+      "start": "2026-03-16",
+      "end": "2026-03-20"
+    },
+    {
+      "label": "Professional Learning",
+      "dateText": "March 23, 2026",
+      "start": "2026-03-23",
+      "end": "2026-03-23"
+    },
+    {
+      "label": "Student/Staff Break",
+      "dateText": "April 3, 2026",
+      "start": "2026-04-03",
+      "end": "2026-04-03"
+    },
+    {
+      "label": "Professional Learning",
+      "dateText": "April 6, 2026",
+      "start": "2026-04-06",
+      "end": "2026-04-06"
+    },
+    {
+      "label": "Proposed STAAR Testing",
+      "dateText": "April 7 - May 1, 2026",
+      "start": "2026-04-07",
+      "end": "2026-05-01"
+    },
+    {
+      "label": "Student/Staff Break",
+      "dateText": "May 25, 2026",
+      "start": "2026-05-25",
+      "end": "2026-05-25"
+    },
+    {
+      "label": "Last Day of School/Early Release",
+      "dateText": "May 29, 2026",
+      "start": "2026-05-29",
+      "end": "2026-05-29"
+    }
+  ]
 }
