@@ -1218,108 +1218,100 @@ function createPointKey(x, y) {
   return `${roundGeometryValue(x)},${roundGeometryValue(y)}`;
 }
 
-function createSegmentKey(aKey, bKey) {
-  return [aKey, bKey].sort().join("|");
-}
+function mergeLinearSegments(segments) {
+  const buckets = new Map();
 
-function addBoundarySegment(segmentMap, pointMap, x1, y1, x2, y2) {
-  const aKey = createPointKey(x1, y1);
-  const bKey = createPointKey(x2, y2);
-  const segmentKey = createSegmentKey(aKey, bKey);
-
-  pointMap.set(aKey, { x: roundGeometryValue(x1), y: roundGeometryValue(y1) });
-  pointMap.set(bKey, { x: roundGeometryValue(x2), y: roundGeometryValue(y2) });
-
-  if (segmentMap.has(segmentKey)) {
-    segmentMap.delete(segmentKey);
-    return;
-  }
-
-  segmentMap.set(segmentKey, { aKey, bKey });
-}
-
-function mergeLinearSegments(segmentMap, pointMap) {
-  const horizontalBuckets = new Map();
-  const verticalBuckets = new Map();
-
-  segmentMap.forEach(({ aKey, bKey }) => {
-    const a = pointMap.get(aKey);
-    const b = pointMap.get(bKey);
-    if (!a || !b) return;
-
-    if (a.y === b.y) {
-      const bucketKey = `${a.y}`;
-      if (!horizontalBuckets.has(bucketKey)) horizontalBuckets.set(bucketKey, []);
-      horizontalBuckets.get(bucketKey).push({
-        start: Math.min(a.x, b.x),
-        end: Math.max(a.x, b.x),
-        y: a.y
-      });
-      return;
-    }
-
-    if (a.x === b.x) {
-      const bucketKey = `${a.x}`;
-      if (!verticalBuckets.has(bucketKey)) verticalBuckets.set(bucketKey, []);
-      verticalBuckets.get(bucketKey).push({
-        start: Math.min(a.y, b.y),
-        end: Math.max(a.y, b.y),
-        x: a.x
-      });
-    }
+  segments.forEach((segment) => {
+    const axisKey =
+      segment.side === "top" || segment.side === "bottom"
+        ? `${segment.side}:${segment.y1}`
+        : `${segment.side}:${segment.x1}`;
+    if (!buckets.has(axisKey)) buckets.set(axisKey, []);
+    buckets.get(axisKey).push(segment);
   });
 
   const mergedSegments = [];
 
-  horizontalBuckets.forEach((segments) => {
-    segments.sort((left, right) => left.start - right.start);
+  buckets.forEach((bucketSegments, axisKey) => {
+    const isHorizontal = axisKey.startsWith("top:") || axisKey.startsWith("bottom:");
+    bucketSegments.sort((a, b) => (isHorizontal ? a.x1 - b.x1 : a.y1 - b.y1));
     let active = null;
 
-    segments.forEach((segment) => {
+    bucketSegments.forEach((segment) => {
       if (!active) {
         active = { ...segment };
         return;
       }
 
-      if (Math.abs(segment.start - active.end) <= 0.25) {
-        active.end = Math.max(active.end, segment.end);
+      const touches = isHorizontal
+        ? Math.abs(segment.x1 - active.x2) <= 0.25
+        : Math.abs(segment.y1 - active.y2) <= 0.25;
+
+      if (touches) {
+        if (isHorizontal) active.x2 = Math.max(active.x2, segment.x2);
+        else active.y2 = Math.max(active.y2, segment.y2);
         return;
       }
 
-      mergedSegments.push({ x1: active.start, y1: active.y, x2: active.end, y2: active.y });
+      mergedSegments.push(active);
       active = { ...segment };
     });
 
-    if (active) {
-      mergedSegments.push({ x1: active.start, y1: active.y, x2: active.end, y2: active.y });
-    }
-  });
-
-  verticalBuckets.forEach((segments) => {
-    segments.sort((top, bottom) => top.start - bottom.start);
-    let active = null;
-
-    segments.forEach((segment) => {
-      if (!active) {
-        active = { ...segment };
-        return;
-      }
-
-      if (Math.abs(segment.start - active.end) <= 0.25) {
-        active.end = Math.max(active.end, segment.end);
-        return;
-      }
-
-      mergedSegments.push({ x1: active.x, y1: active.start, x2: active.x, y2: active.end });
-      active = { ...segment };
-    });
-
-    if (active) {
-      mergedSegments.push({ x1: active.x, y1: active.start, x2: active.x, y2: active.end });
-    }
+    if (active) mergedSegments.push(active);
   });
 
   return mergedSegments;
+}
+
+function getInsetSegment(segment, inset) {
+  if (!inset) return { ...segment };
+
+  if (segment.side === "top") {
+    return { ...segment, x1: segment.x1 + inset, x2: segment.x2 - inset, y1: segment.y1 - inset, y2: segment.y2 - inset };
+  }
+
+  if (segment.side === "bottom") {
+    return { ...segment, x1: segment.x1 + inset, x2: segment.x2 - inset, y1: segment.y1 + inset, y2: segment.y2 + inset };
+  }
+
+  if (segment.side === "left") {
+    return { ...segment, x1: segment.x1 - inset, x2: segment.x2 - inset, y1: segment.y1 + inset, y2: segment.y2 - inset };
+  }
+
+  return { ...segment, x1: segment.x1 + inset, x2: segment.x2 + inset, y1: segment.y1 + inset, y2: segment.y2 - inset };
+}
+
+function createStaarDot(svg, x, y, radius, className = "staar-dot") {
+  const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+  dot.setAttribute("class", className);
+  dot.setAttribute("cx", `${roundGeometryValue(x)}`);
+  dot.setAttribute("cy", `${roundGeometryValue(y)}`);
+  dot.setAttribute("r", `${radius}`);
+  svg.appendChild(dot);
+}
+
+function addDotsForSegment(svg, segment, options) {
+  const dx = segment.x2 - segment.x1;
+  const dy = segment.y2 - segment.y1;
+  const length = Math.hypot(dx, dy);
+  if (length <= 0) return;
+
+  const minGap = options.minGap;
+  const maxGap = options.maxGap;
+  const targetGap = options.targetGap;
+  const minIntervals = Math.max(1, Math.ceil(length / maxGap));
+  const maxIntervals = Math.max(minIntervals, Math.floor(length / minGap));
+  const intervalCount = Math.min(maxIntervals, Math.max(minIntervals, Math.round(length / targetGap)));
+
+  for (let index = 1; index < intervalCount; index += 1) {
+    const ratio = index / intervalCount;
+    createStaarDot(
+      svg,
+      segment.x1 + dx * ratio,
+      segment.y1 + dy * ratio,
+      options.dotRadius
+    );
+  }
 }
 
 function renderStaarOverlay(daysGrid, staarCells, cellMatrix) {
@@ -1349,8 +1341,7 @@ function renderStaarOverlay(daysGrid, staarCells, cellMatrix) {
   }
 
   const occupied = new Set(staarCells.map(({ rowIndex, columnIndex }) => `${rowIndex}:${columnIndex}`));
-  const segmentMap = new Map();
-  const pointMap = new Map();
+  const rawSegments = [];
 
   staarCells.forEach(({ rowIndex, columnIndex }) => {
     const left = xStarts[columnIndex];
@@ -1362,47 +1353,47 @@ function renderStaarOverlay(daysGrid, staarCells, cellMatrix) {
     const bottomNeighbor = occupied.has(`${rowIndex + 1}:${columnIndex}`);
     const leftNeighbor = occupied.has(`${rowIndex}:${columnIndex - 1}`);
 
-    if (!topNeighbor) addBoundarySegment(segmentMap, pointMap, left, top, right, top);
-    if (!rightNeighbor) addBoundarySegment(segmentMap, pointMap, right, top, right, bottom);
-    if (!bottomNeighbor) addBoundarySegment(segmentMap, pointMap, right, bottom, left, bottom);
-    if (!leftNeighbor) addBoundarySegment(segmentMap, pointMap, left, bottom, left, top);
+    if (!topNeighbor) rawSegments.push({ side: "top", x1: left, y1: top, x2: right, y2: top });
+    if (!rightNeighbor) rawSegments.push({ side: "right", x1: right, y1: top, x2: right, y2: bottom });
+    if (!bottomNeighbor) rawSegments.push({ side: "bottom", x1: left, y1: bottom, x2: right, y2: bottom });
+    if (!leftNeighbor) rawSegments.push({ side: "left", x1: left, y1: top, x2: left, y2: bottom });
   });
 
-  const mergedSegments = mergeLinearSegments(segmentMap, pointMap);
+  const mergedSegments = mergeLinearSegments(rawSegments);
   if (mergedSegments.length === 0) return;
 
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("class", "staar-overlay");
   svg.setAttribute("viewBox", `0 0 ${roundGeometryValue(gridWidth)} ${roundGeometryValue(gridHeight)}`);
+  svg.setAttribute("preserveAspectRatio", "none");
   svg.setAttribute("aria-hidden", "true");
 
+  const dotOptions = {
+    minGap: 8.75,
+    maxGap: 11.75,
+    targetGap: 10.15,
+    dotRadius: 1.75,
+    cornerRadius: 2.15,
+    inset: 2.25
+  };
   const cornerPoints = new Map();
 
   mergedSegments.forEach((segment) => {
-    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    line.setAttribute("class", "staar-outline-segment");
-    line.setAttribute("x1", `${segment.x1}`);
-    line.setAttribute("y1", `${segment.y1}`);
-    line.setAttribute("x2", `${segment.x2}`);
-    line.setAttribute("y2", `${segment.y2}`);
-    svg.appendChild(line);
+    const insetSegment = getInsetSegment(segment, dotOptions.inset);
+    addDotsForSegment(svg, insetSegment, dotOptions);
 
-    [createPointKey(segment.x1, segment.y1), createPointKey(segment.x2, segment.y2)].forEach((key) => {
+    [
+      createPointKey(insetSegment.x1, insetSegment.y1),
+      createPointKey(insetSegment.x2, insetSegment.y2)
+    ].forEach((key) => {
       if (cornerPoints.has(key)) return;
-      cornerPoints.set(key, {
-        x: key.split(",")[0],
-        y: key.split(",")[1]
-      });
+      const [x, y] = key.split(",").map(Number);
+      cornerPoints.set(key, { x, y });
     });
   });
 
   cornerPoints.forEach(({ x, y }) => {
-    const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    dot.setAttribute("class", "staar-corner-dot");
-    dot.setAttribute("cx", `${x}`);
-    dot.setAttribute("cy", `${y}`);
-    dot.setAttribute("r", "2.6");
-    svg.appendChild(dot);
+    createStaarDot(svg, x, y, dotOptions.cornerRadius, "staar-corner-dot");
   });
 
   daysGrid.appendChild(svg);

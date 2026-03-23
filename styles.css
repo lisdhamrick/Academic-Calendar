@@ -531,13 +531,7 @@ body {
   z-index: 1;
 }
 
-.staar-outline-segment {
-  stroke: var(--staar);
-  stroke-width: 5px;
-  stroke-linecap: round;
-  stroke-dasharray: 0.01 11;
-}
-
+.staar-dot,
 .staar-corner-dot {
   fill: var(--staar);
 }
