@@ -1282,26 +1282,50 @@ function createStaarPathData(loop) {
   return `M ${firstPoint.x} ${firstPoint.y} ${rest.map((point) => `L ${point.x} ${point.y}`).join(" ")} Z`;
 }
 
-function renderStaarOverlay(daysGrid, staarCells) {
-  if (!daysGrid || staarCells.length === 0) return;
+function renderStaarOverlay(daysGrid, staarCells, cellMatrix) {
+  if (!daysGrid || staarCells.length === 0 || !cellMatrix?.length) return;
 
   const gridWidth = daysGrid.clientWidth;
   const gridHeight = daysGrid.clientHeight;
   if (!gridWidth || !gridHeight) return;
 
+  const xStarts = [];
+  const xEnds = [];
+  const yStarts = [];
+  const yEnds = [];
+
+  for (let columnIndex = 0; columnIndex < 7; columnIndex += 1) {
+    const sampleCell = cellMatrix[0]?.[columnIndex];
+    if (!sampleCell) return;
+    xStarts[columnIndex] = sampleCell.offsetLeft;
+    xEnds[columnIndex] = sampleCell.offsetLeft + sampleCell.offsetWidth;
+  }
+
+  for (let rowIndex = 0; rowIndex < cellMatrix.length; rowIndex += 1) {
+    const sampleCell = cellMatrix[rowIndex]?.[0];
+    if (!sampleCell) return;
+    yStarts[rowIndex] = sampleCell.offsetTop;
+    yEnds[rowIndex] = sampleCell.offsetTop + sampleCell.offsetHeight;
+  }
+
+  const occupied = new Set(staarCells.map(({ rowIndex, columnIndex }) => `${rowIndex}:${columnIndex}`));
   const segmentMap = new Map();
   const pointMap = new Map();
 
-  staarCells.forEach((cell) => {
-    const left = cell.offsetLeft;
-    const top = cell.offsetTop;
-    const right = left + cell.offsetWidth;
-    const bottom = top + cell.offsetHeight;
+  staarCells.forEach(({ rowIndex, columnIndex }) => {
+    const left = xStarts[columnIndex];
+    const right = xEnds[columnIndex];
+    const top = yStarts[rowIndex];
+    const bottom = yEnds[rowIndex];
+    const topNeighbor = occupied.has(`${rowIndex - 1}:${columnIndex}`);
+    const rightNeighbor = occupied.has(`${rowIndex}:${columnIndex + 1}`);
+    const bottomNeighbor = occupied.has(`${rowIndex + 1}:${columnIndex}`);
+    const leftNeighbor = occupied.has(`${rowIndex}:${columnIndex - 1}`);
 
-    addBoundarySegment(segmentMap, pointMap, left, top, right, top);
-    addBoundarySegment(segmentMap, pointMap, right, top, right, bottom);
-    addBoundarySegment(segmentMap, pointMap, right, bottom, left, bottom);
-    addBoundarySegment(segmentMap, pointMap, left, bottom, left, top);
+    if (!topNeighbor) addBoundarySegment(segmentMap, pointMap, left, top, right, top);
+    if (!rightNeighbor) addBoundarySegment(segmentMap, pointMap, right, top, right, bottom);
+    if (!bottomNeighbor) addBoundarySegment(segmentMap, pointMap, right, bottom, left, bottom);
+    if (!leftNeighbor) addBoundarySegment(segmentMap, pointMap, left, bottom, left, top);
   });
 
   const loops = buildLoopsFromSegments(segmentMap, pointMap);
@@ -1429,14 +1453,17 @@ function renderCalendar() {
     }
 
     const staarCells = [];
+    const cellMatrix = [];
 
-    weeks.forEach((week) => {
+    weeks.forEach((week, weekIndex) => {
+      cellMatrix[weekIndex] = [];
       week.forEach((cell, dayIndex) => {
         if (cell.type === "spacer") {
           const spacer = document.createElement("li");
           spacer.className = "day-cell spacer";
           spacer.innerHTML = '<span class="day-glyph" aria-hidden="true"><span class="day-dot"></span></span>';
           daysGrid.appendChild(spacer);
+          cellMatrix[weekIndex][dayIndex] = spacer;
           return;
         }
 
@@ -1485,7 +1512,9 @@ function renderCalendar() {
           dayCell.appendChild(frameTag);
         }
 
-        if (dayEvents.includes("proposedStaar")) staarCells.push(dayCell);
+        if (dayEvents.includes("proposedStaar")) {
+          staarCells.push({ rowIndex: weekIndex, columnIndex: dayIndex });
+        }
 
         dayCell.dataset.date = cell.key;
 
@@ -1495,13 +1524,14 @@ function renderCalendar() {
         }
 
         daysGrid.appendChild(dayCell);
+        cellMatrix[weekIndex][dayIndex] = dayCell;
         if (!dayCellMap.has(cell.key)) dayCellMap.set(cell.key, []);
         dayCellMap.get(cell.key).push(dayCell);
       });
     });
 
     calendarGrid.appendChild(monthCard);
-    renderStaarOverlay(daysGrid, staarCells);
+    renderStaarOverlay(daysGrid, staarCells, cellMatrix);
   }
 
   Object.values(CALENDAR_CONFIG.eventTypes).forEach((eventType) => {
