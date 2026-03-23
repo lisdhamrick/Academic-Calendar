@@ -497,7 +497,7 @@ body {
 }
 
 .event-staar {
-  background: rgba(0, 89, 135, 0.2);
+  background: transparent;
 }
 
 .day-cell-er .day-number {
@@ -518,6 +518,50 @@ body {
 
 .day-bracket-gp9 {
   --marker-color: var(--gp9);
+}
+
+.staar-edge {
+  position: absolute;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.staar-edge-top,
+.staar-edge-bottom {
+  left: 0;
+  right: 0;
+  height: 8px;
+  background-image: radial-gradient(circle, var(--staar) 2.1px, transparent 2.2px);
+  background-size: 10px 8px;
+  background-repeat: repeat-x;
+  background-position: center;
+}
+
+.staar-edge-top {
+  top: -1px;
+}
+
+.staar-edge-bottom {
+  bottom: -1px;
+}
+
+.staar-edge-left,
+.staar-edge-right {
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  background-image: radial-gradient(circle, var(--staar) 2.1px, transparent 2.2px);
+  background-size: 8px 10px;
+  background-repeat: repeat-y;
+  background-position: center;
+}
+
+.staar-edge-left {
+  left: -1px;
+}
+
+.staar-edge-right {
+  right: -1px;
 }
 
 .day-bracket-start {

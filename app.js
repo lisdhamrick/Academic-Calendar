@@ -1210,6 +1210,35 @@ function shouldSplitBetweenCells(leftCell, rightCell, eventLookup, markerLookup)
   return left.hasVisual && right.hasVisual && left.signature !== right.signature;
 }
 
+function cellHasEventType(cell, eventLookup, eventType) {
+  if (!cell || cell.type !== "day") return false;
+  const dayEvents = eventLookup[cell.key] || [];
+  return dayEvents.includes(eventType);
+}
+
+function addStaarOutline(dayCell, week, weekIndex, dayIndex, weeks, eventLookup) {
+  const leftCell = dayIndex > 0 ? week[dayIndex - 1] : null;
+  const rightCell = dayIndex < 6 ? week[dayIndex + 1] : null;
+  const upperWeek = weekIndex > 0 ? weeks[weekIndex - 1] : null;
+  const lowerWeek = weekIndex < weeks.length - 1 ? weeks[weekIndex + 1] : null;
+  const topCell = upperWeek ? upperWeek[dayIndex] : null;
+  const bottomCell = lowerWeek ? lowerWeek[dayIndex] : null;
+
+  const edges = {
+    top: !cellHasEventType(topCell, eventLookup, "proposedStaar"),
+    right: !cellHasEventType(rightCell, eventLookup, "proposedStaar"),
+    bottom: !cellHasEventType(bottomCell, eventLookup, "proposedStaar"),
+    left: !cellHasEventType(leftCell, eventLookup, "proposedStaar")
+  };
+
+  Object.entries(edges).forEach(([side, shouldRender]) => {
+    if (!shouldRender) return;
+    const edge = document.createElement("span");
+    edge.className = `staar-edge staar-edge-${side}`;
+    dayCell.appendChild(edge);
+  });
+}
+
 function renderCalendar() {
   const t = getCurrentTranslations();
   const schoolYearLabel = document.getElementById("schoolYearLabel");
@@ -1314,7 +1343,7 @@ function renderCalendar() {
       if (weeks.length === 6 && weekHasOnlyWeekendMonthDays(weeks[weeks.length - 1])) weeks.pop();
     }
 
-    weeks.forEach((week) => {
+    weeks.forEach((week, weekIndex) => {
       week.forEach((cell, dayIndex) => {
         if (cell.type === "spacer") {
           const spacer = document.createElement("li");
@@ -1367,6 +1396,10 @@ function renderCalendar() {
           const frameTag = document.createElement("span");
           frameTag.className = "day-frame-first-last";
           dayCell.appendChild(frameTag);
+        }
+
+        if (dayEvents.includes("proposedStaar")) {
+          addStaarOutline(dayCell, week, weekIndex, dayIndex, weeks, eventLookup);
         }
 
         dayCell.dataset.date = cell.key;
