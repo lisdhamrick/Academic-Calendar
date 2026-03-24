@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Campus Calendar</title>
+    <link rel="stylesheet" href="./campus-calendar.css" />
+  </head>
+  <body>
+    <main class="campus-app" id="campusApp">
+      <header class="campus-header">
+        <div>
+          <p class="campus-kicker">Live Campus Calendar</p>
+          <h1 id="campusTitle">Campus Calendar</h1>
+        </div>
+        <p class="campus-range" id="campusRangeLabel">Upcoming events</p>
+      </header>
+
+      <section class="campus-toolbar" id="campusToolbar" hidden>
+        <div class="source-filters" id="sourceFilters" aria-label="Calendar source filters"></div>
+      </section>
+
+      <section class="campus-status" id="campusStatus" aria-live="polite">Loading events...</section>
+      <section class="campus-groups" id="campusGroups" aria-label="Upcoming events"></section>
+    </main>
+
+    <script src="./campus-calendar.js"></script>
+  </body>
+</html>
