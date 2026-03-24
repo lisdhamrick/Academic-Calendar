@@ -144,7 +144,8 @@ const CALENDAR_CONFIG = {
     studentStaffHoliday: { label: "Student / Staff Holiday", className: "event-holiday" },
     earlyRelease: { label: "Early Release", className: "event-early-release" },
     firstLastDay: { label: "First / Last Day of School", className: "event-first-last" },
-    proposedStaar: { label: "Proposed STAAR Testing", className: "event-staar" }
+    proposedStaar: { label: "Proposed STAAR Testing", className: "event-staar" },
+    abSchedule: { label: "A Day / B Day Schedule", className: "event-ab-schedule" }
   },
   gradingMarkerTypes: {
     gp6: { label: "6-Week Grading Periods", className: "event-gp6" },
@@ -166,8 +167,14 @@ const EVENT_TYPE_PRIORITY = {
   teacherProfessionalLearning: 2,
   newTeacherTraining: 3,
   studentStaffHoliday: 4,
-  proposedStaar: 5
+  proposedStaar: 5,
+  abSchedule: 6
 };
+const NON_ATTENDANCE_EVENT_TYPES = new Set([
+  "newTeacherTraining",
+  "teacherProfessionalLearning",
+  "studentStaffHoliday"
+]);
 const FILLED_EVENT_TYPES = new Set([
   "earlyRelease",
   "teacherProfessionalLearning",
@@ -202,6 +209,7 @@ const TRANSLATIONS = {
       earlyRelease: "Early Release",
       firstLastDay: "First / Last Day of School",
       proposedStaar: "Proposed STAAR Testing",
+      abSchedule: "A Day / B Day Schedule",
       gp6: "6-Week Grading Periods",
       gp9: "9-Week Grading Periods"
     },
@@ -253,6 +261,7 @@ const TRANSLATIONS = {
       earlyRelease: "Salida temprana",
       firstLastDay: "Primer / último día de clases",
       proposedStaar: "Pruebas STAAR propuestas",
+      abSchedule: "Horario A/B",
       gp6: "Períodos de calificación de 6 semanas",
       gp9: "Períodos de calificación de 9 semanas"
     },
@@ -598,6 +607,7 @@ function applyDisplayState() {
 function getAvailableFilterTypes() {
   const eventTypes = new Set();
   const markerTypes = new Set();
+  const abScheduleMap = buildAbScheduleMap();
 
   if (Array.isArray(CALENDAR_CONFIG.eventRules) && CALENDAR_CONFIG.eventRules.length > 0) {
     CALENDAR_CONFIG.eventRules.forEach((rule) => {
@@ -615,6 +625,8 @@ function getAvailableFilterTypes() {
     if (!marker || !CALENDAR_CONFIG.gradingMarkerTypes[marker.type]) return;
     markerTypes.add(marker.type);
   });
+
+  if (abScheduleMap.size > 0) eventTypes.add("abSchedule");
 
   return { eventTypes, markerTypes };
 }
@@ -678,6 +690,13 @@ function renderEventFilters() {
       swatch.textContent = t.earlyReleaseBadge;
     } else if (filter.type === "firstLastDay") {
       swatch.classList.add("filter-chip-swatch-frame");
+    } else if (filter.type === "abSchedule") {
+      swatch.classList.add("filter-chip-swatch-ab");
+      swatch.innerHTML = `
+        <span class="filter-chip-ab-box filter-chip-ab-a">A</span>
+        <span class="filter-chip-ab-slash">/</span>
+        <span class="filter-chip-ab-box filter-chip-ab-b">B</span>
+      `;
     }
 
     const label = document.createElement("span");
@@ -1148,6 +1167,44 @@ function isWeekendISO(isoDate) {
   return day === 0 || day === 6;
 }
 
+function getFirstSchoolDayKey() {
+  const firstLastDays = CALENDAR_CONFIG.events
+    .filter((event) => event.type === "firstLastDay")
+    .map((event) => event.date)
+    .sort();
+  return firstLastDays[0] || "";
+}
+
+function isStudentAttendanceDay(dateKey, eventLookup) {
+  if (isWeekendISO(dateKey)) return false;
+  const dayEvents = eventLookup[dateKey] || [];
+  return !dayEvents.some((type) => NON_ATTENDANCE_EVENT_TYPES.has(type));
+}
+
+function buildAbScheduleMap() {
+  const eventLookup = buildEventLookup(CALENDAR_CONFIG.events);
+  const startKey = getFirstSchoolDayKey();
+  if (!startKey) return new Map();
+
+  const schedule = new Map();
+  const startDate = parseISODate(startKey);
+  const endDate = new Date(
+    CALENDAR_CONFIG.startYear,
+    CALENDAR_CONFIG.startMonth + CALENDAR_CONFIG.monthsToRender,
+    0
+  );
+  let nextLabel = "A";
+
+  for (const cursor = new Date(startDate); cursor <= endDate; cursor.setDate(cursor.getDate() + 1)) {
+    const dateKey = createDateKey(cursor);
+    if (!isStudentAttendanceDay(dateKey, eventLookup)) continue;
+    schedule.set(dateKey, nextLabel);
+    nextLabel = nextLabel === "A" ? "B" : "A";
+  }
+
+  return schedule;
+}
+
 function resolveAccentColorForType(type) {
   const rootStyles = getComputedStyle(document.documentElement);
   const varByType = {
@@ -1156,7 +1213,8 @@ function resolveAccentColorForType(type) {
     studentStaffHoliday: "--holiday",
     earlyRelease: "--early-release",
     firstLastDay: "--first-last",
-    proposedStaar: "--staar"
+    proposedStaar: "--staar",
+    abSchedule: "--ab-b-day"
   };
   const varName = varByType[type];
   if (varName) {
@@ -1278,6 +1336,8 @@ function renderCalendar() {
   const filteredEventRules = CALENDAR_CONFIG.eventRules.filter((rule) =>
     rule.enabled !== false && FILTER_STATE.visibleEventTypes.has(rule.type)
   );
+  const abScheduleMap = buildAbScheduleMap();
+  const showAbSchedule = FILTER_STATE.visibleEventTypes.has("abSchedule") && abScheduleMap.size > 0;
   const eventLookup = buildEventLookup(filteredEvents);
   const markerLookup = buildMarkerLookup(filteredMarkers);
   const namedImportant = buildNamedImportantFromEventRules(filteredEventRules);
@@ -1384,8 +1444,12 @@ function renderCalendar() {
         }
 
         const dominantEventType = getHighestPriorityEventType(dayEvents);
+        const abDay = showAbSchedule ? abScheduleMap.get(cell.key) || "" : "";
         if (FILLED_EVENT_TYPES.has(dominantEventType)) {
           dayCell.style.backgroundColor = resolveAccentColorForType(dominantEventType);
+        } else if (abDay === "B") {
+          dayCell.classList.add("day-cell-ab-b");
+          dayCell.style.backgroundColor = resolveAccentColorForType("abSchedule");
         }
 
         if (dayEvents.includes("earlyRelease")) {
