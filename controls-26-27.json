@@ -178,7 +178,7 @@
       "end": "2027-04-30",
       "weekdaysOnly": true,
       "name": "Proposed STAAR Testing Window",
-      "enabled": true
+      "enabled": false
     }
   ],
   "gradingRanges": {
@@ -186,69 +186,28 @@
       {
         "start": "2026-08-12",
         "end": "2026-09-18",
-        "enabled": true
+        "enabled": false
       },
       {
         "start": "2026-09-22",
         "end": "2026-10-30",
-        "enabled": true
+        "enabled": false
       },
       {
         "start": "2026-11-04",
         "end": "2026-12-18",
-        "enabled": true
+        "enabled": false
       }
     ],
     "gp9": [
       {
         "start": "2026-08-12",
         "end": "2027-05-27",
-        "enabled": true
+        "enabled": false
       }
     ]
   },
-  "gradingMarkers": [
-    {
-      "type": "gp6",
-      "date": "2026-08-12",
-      "side": "start"
-    },
-    {
-      "type": "gp6",
-      "date": "2026-09-18",
-      "side": "end"
-    },
-    {
-      "type": "gp6",
-      "date": "2026-09-22",
-      "side": "start"
-    },
-    {
-      "type": "gp6",
-      "date": "2026-10-30",
-      "side": "end"
-    },
-    {
-      "type": "gp6",
-      "date": "2026-11-04",
-      "side": "start"
-    },
-    {
-      "type": "gp6",
-      "date": "2026-12-18",
-      "side": "end"
-    },
-    {
-      "type": "gp9",
-      "date": "2026-08-12",
-      "side": "start"
-    },
-    {
-      "type": "gp9",
-      "date": "2027-05-27",
-      "side": "end"
-    }
-  ],
+  "gradingMarkers": [],
   "importantDates": [
     {
       "label": "New Teacher Training",
@@ -357,12 +316,6 @@
       "dateText": "March 29, 2027",
       "start": "2027-03-29",
       "end": "2027-03-29"
-    },
-    {
-      "label": "Proposed STAAR Testing Window",
-      "dateText": "April 5 - 30, 2027",
-      "start": "2027-04-05",
-      "end": "2027-04-30"
     },
     {
       "label": "Professional Learning",
