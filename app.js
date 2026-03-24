@@ -1187,6 +1187,7 @@ function sortEntriesByPriority(entries) {
 function buildNamedImportantFromEventRules(rules) {
   const entries = [];
   rules.forEach((rule, index) => {
+    if (rule.enabled === false) return;
     const name = typeof rule.name === "string" ? rule.name.trim() : "";
     if (!name || !rule.start) return;
     const start = rule.start;
@@ -1275,13 +1276,13 @@ function renderCalendar() {
     FILTER_STATE.visibleMarkerTypes.has(marker.type)
   );
   const filteredEventRules = CALENDAR_CONFIG.eventRules.filter((rule) =>
-    FILTER_STATE.visibleEventTypes.has(rule.type)
+    rule.enabled !== false && FILTER_STATE.visibleEventTypes.has(rule.type)
   );
   const eventLookup = buildEventLookup(filteredEvents);
   const markerLookup = buildMarkerLookup(filteredMarkers);
   const namedImportant = buildNamedImportantFromEventRules(filteredEventRules);
   const hasNamedImportantSource = CALENDAR_CONFIG.eventRules.some(
-    (rule) => typeof rule.name === "string" && rule.name.trim()
+    (rule) => rule.enabled !== false && typeof rule.name === "string" && rule.name.trim()
   );
   const importantEntries = hasNamedImportantSource
     ? namedImportant
