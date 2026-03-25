@@ -3,6 +3,7 @@
   "startYear": 2025,
   "startMonth": 6,
   "monthsToRender": 12,
+  "abScheduleEnabled": true,
   "eventRules": [
     {
       "type": "newTeacherTraining",
