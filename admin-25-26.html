@@ -77,6 +77,15 @@
         font: inherit;
       }
 
+      .admin-field input[type="checkbox"] {
+        width: auto;
+        padding: 0;
+      }
+
+      .admin-field-checkbox {
+        align-content: start;
+      }
+
       .group-grid {
         display: grid;
         gap: 0.7rem;
@@ -203,6 +212,10 @@
             <div class="admin-field">
               <label for="monthsToRender">Months to Render</label>
               <input id="monthsToRender" type="number" min="1" max="24" />
+            </div>
+            <div class="admin-field admin-field-checkbox">
+              <label for="abScheduleEnabled">Allow A/B Schedule Layer</label>
+              <input id="abScheduleEnabled" type="checkbox" />
             </div>
           </div>
         </section>

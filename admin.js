@@ -283,6 +283,7 @@ async function fetchSharedControls() {
         startYear: 2026,
         startMonth: 6,
         monthsToRender: 12,
+        abScheduleEnabled: false,
         eventGroups: createEmptyEventGroups(),
         gradingGroups: { gp6: [], gp9: [] }
       };
@@ -294,6 +295,7 @@ async function fetchSharedControls() {
       startYear: Number.isInteger(data.startYear) ? data.startYear : 2026,
       startMonth: Number.isInteger(data.startMonth) ? data.startMonth : 6,
       monthsToRender: Number.isInteger(data.monthsToRender) ? data.monthsToRender : 12,
+      abScheduleEnabled: data.abScheduleEnabled === true,
       eventGroups: groupEventRules(data.eventRules || []),
       gradingGroups: data.gradingRanges
         ? normalizeGradingRanges(data.gradingRanges)
@@ -308,6 +310,7 @@ async function fetchSharedControls() {
       startYear: 2026,
       startMonth: 6,
       monthsToRender: 12,
+      abScheduleEnabled: false,
       eventGroups: createEmptyEventGroups(),
       gradingGroups: { gp6: [], gp9: [] }
     };
@@ -319,6 +322,7 @@ const state = {
   startYear: 2026,
   startMonth: 6,
   monthsToRender: 12,
+  abScheduleEnabled: false,
   eventGroups: createEmptyEventGroups(),
   gradingGroups: { gp6: [], gp9: [] }
 };
@@ -329,6 +333,7 @@ const schoolYearLabelInput = document.getElementById("schoolYearLabel");
 const startYearInput = document.getElementById("startYear");
 const startMonthSelect = document.getElementById("startMonth");
 const monthsToRenderInput = document.getElementById("monthsToRender");
+const abScheduleEnabledInput = document.getElementById("abScheduleEnabled");
 const eventGroupsContainer = document.getElementById("eventGroups");
 const gradingGroupsContainer = document.getElementById("gradingGroups");
 const statusLine = document.getElementById("statusLine");
@@ -575,6 +580,7 @@ function renderAll() {
   startYearInput.value = state.startYear;
   startMonthSelect.value = String(state.startMonth);
   monthsToRenderInput.value = state.monthsToRender;
+  if (abScheduleEnabledInput) abScheduleEnabledInput.checked = state.abScheduleEnabled === true;
   renderEventGroups();
   renderGradingGroups();
 }
@@ -585,6 +591,7 @@ function collectForm() {
     startYear: Number(startYearInput.value),
     startMonth: Number(startMonthSelect.value),
     monthsToRender: Number(monthsToRenderInput.value),
+    abScheduleEnabled: abScheduleEnabledInput ? abScheduleEnabledInput.checked : false,
     eventRules: flattenEventRules(state.eventGroups),
     gradingRanges: {
       gp6: (state.gradingGroups.gp6 || [])
@@ -623,6 +630,12 @@ schoolYearLabelInput.addEventListener("input", markDirty);
 startYearInput.addEventListener("input", markDirty);
 startMonthSelect.addEventListener("change", markDirty);
 monthsToRenderInput.addEventListener("input", markDirty);
+if (abScheduleEnabledInput) {
+  abScheduleEnabledInput.addEventListener("change", () => {
+    state.abScheduleEnabled = abScheduleEnabledInput.checked;
+    markDirty();
+  });
+}
 
 document.getElementById("saveControls").addEventListener("click", async () => {
   githubSettings.owner = repoOwnerInput.value.trim();
@@ -664,6 +677,7 @@ document.getElementById("resetDefaults").addEventListener("click", async () => {
   state.startYear = fresh.startYear;
   state.startMonth = fresh.startMonth;
   state.monthsToRender = fresh.monthsToRender;
+  state.abScheduleEnabled = fresh.abScheduleEnabled === true;
   state.eventGroups = deepClone(fresh.eventGroups || createEmptyEventGroups());
   state.gradingGroups = deepClone(fresh.gradingGroups || { gp6: [], gp9: [] });
   renderAll();
@@ -672,6 +686,7 @@ document.getElementById("resetDefaults").addEventListener("click", async () => {
 });
 
 document.getElementById("clearSaved").addEventListener("click", () => {
+  state.abScheduleEnabled = false;
   state.eventGroups = createEmptyEventGroups();
   state.gradingGroups = { gp6: [], gp9: [] };
   renderAll();
@@ -686,6 +701,7 @@ fetchSharedControls().then((fresh) => {
   state.startYear = fresh.startYear;
   state.startMonth = fresh.startMonth;
   state.monthsToRender = fresh.monthsToRender;
+  state.abScheduleEnabled = fresh.abScheduleEnabled === true;
   state.eventGroups = deepClone(fresh.eventGroups || createEmptyEventGroups());
   state.gradingGroups = deepClone(fresh.gradingGroups || { gp6: [], gp9: [] });
   renderAll();

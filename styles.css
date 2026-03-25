@@ -266,6 +266,11 @@ body {
   border: var(--frame-stroke) solid var(--first-last);
 }
 
+.filter-chip-swatch.event-staar {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--staar);
+}
+
 .filter-chip-label {
   white-space: nowrap;
   min-width: 0;
@@ -535,7 +540,8 @@ body {
 }
 
 .event-staar {
-  background: var(--staar);
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--staar);
 }
 
 .day-cell-er .day-number {

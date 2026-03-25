@@ -151,6 +151,7 @@ const CALENDAR_CONFIG = {
     gp6: { label: "6-Week Grading Periods", className: "event-gp6" },
     gp9: { label: "9-Week Grading Periods", className: "event-gp9" }
   },
+  abScheduleEnabled: false,
   eventRules: DEFAULT_EVENT_RULES.map((rule) => ({ ...rule })),
   events: [],
   gradingMarkers: [],
@@ -179,8 +180,7 @@ const FILLED_EVENT_TYPES = new Set([
   "earlyRelease",
   "teacherProfessionalLearning",
   "newTeacherTraining",
-  "studentStaffHoliday",
-  "proposedStaar"
+  "studentStaffHoliday"
 ]);
 
 const TRANSLATIONS = {
@@ -298,7 +298,14 @@ const FILTER_STATE = {
 const DISPLAY_STATE = {
   isEmbedded: parseBooleanParam(urlParams.get("embed"), window.self !== window.top),
   showHeader: parseBooleanParam(urlParams.get("header"), true),
-  showImportantDates: parseBooleanParam(urlParams.get("dates"), true)
+  showImportantDates: parseBooleanParam(urlParams.get("dates"), true),
+  allowedEventTypes: {
+    abSchedule: parseBooleanParam(urlParams.get("ABdays"), true)
+  },
+  allowedMarkerTypes: {
+    gp6: parseBooleanParam(urlParams.get("6week"), true),
+    gp9: parseBooleanParam(urlParams.get("9week"), true)
+  }
 };
 
 const STACKED_LAYOUT_QUERY = window.matchMedia("(max-width: 1220px) and (max-aspect-ratio: 4/3)");
@@ -496,6 +503,10 @@ function applyControlData(data) {
     CALENDAR_CONFIG.monthsToRender = data.monthsToRender;
   }
 
+  if (typeof data.abScheduleEnabled === "boolean") {
+    CALENDAR_CONFIG.abScheduleEnabled = data.abScheduleEnabled;
+  }
+
   if (Array.isArray(data.eventRules)) {
     CALENDAR_CONFIG.eventRules = sanitizeEventRules(data.eventRules);
     CALENDAR_CONFIG.events = expandEventRules(CALENDAR_CONFIG.eventRules);
@@ -517,6 +528,20 @@ function applyControlData(data) {
       CALENDAR_CONFIG.importantDates = cleaned;
     }
   }
+}
+
+function isEventTypeAllowed(type) {
+  if (Object.prototype.hasOwnProperty.call(DISPLAY_STATE.allowedEventTypes, type)) {
+    return DISPLAY_STATE.allowedEventTypes[type];
+  }
+  return true;
+}
+
+function isMarkerTypeAllowed(type) {
+  if (Object.prototype.hasOwnProperty.call(DISPLAY_STATE.allowedMarkerTypes, type)) {
+    return DISPLAY_STATE.allowedMarkerTypes[type];
+  }
+  return true;
 }
 
 async function loadSharedControls() {
@@ -611,22 +636,33 @@ function getAvailableFilterTypes() {
 
   if (Array.isArray(CALENDAR_CONFIG.eventRules) && CALENDAR_CONFIG.eventRules.length > 0) {
     CALENDAR_CONFIG.eventRules.forEach((rule) => {
-      if (!rule || rule.enabled === false || !CALENDAR_CONFIG.eventTypes[rule.type]) return;
+      if (
+        !rule ||
+        rule.enabled === false ||
+        !CALENDAR_CONFIG.eventTypes[rule.type] ||
+        !isEventTypeAllowed(rule.type)
+      ) {
+        return;
+      }
       eventTypes.add(rule.type);
     });
   } else {
     CALENDAR_CONFIG.events.forEach((event) => {
-      if (!event || !CALENDAR_CONFIG.eventTypes[event.type]) return;
+      if (!event || !CALENDAR_CONFIG.eventTypes[event.type] || !isEventTypeAllowed(event.type)) return;
       eventTypes.add(event.type);
     });
   }
 
   CALENDAR_CONFIG.gradingMarkers.forEach((marker) => {
-    if (!marker || !CALENDAR_CONFIG.gradingMarkerTypes[marker.type]) return;
+    if (!marker || !CALENDAR_CONFIG.gradingMarkerTypes[marker.type] || !isMarkerTypeAllowed(marker.type)) {
+      return;
+    }
     markerTypes.add(marker.type);
   });
 
-  if (abScheduleMap.size > 0) eventTypes.add("abSchedule");
+  if (CALENDAR_CONFIG.abScheduleEnabled && isEventTypeAllowed("abSchedule") && abScheduleMap.size > 0) {
+    eventTypes.add("abSchedule");
+  }
 
   return { eventTypes, markerTypes };
 }
@@ -1175,6 +1211,14 @@ function getFirstSchoolDayKey() {
   return firstLastDays[0] || "";
 }
 
+function getLastSchoolDayKey() {
+  const firstLastDays = CALENDAR_CONFIG.events
+    .filter((event) => event.type === "firstLastDay")
+    .map((event) => event.date)
+    .sort();
+  return firstLastDays[firstLastDays.length - 1] || "";
+}
+
 function isStudentAttendanceDay(dateKey, eventLookup) {
   if (isWeekendISO(dateKey)) return false;
   const dayEvents = eventLookup[dateKey] || [];
@@ -1182,17 +1226,16 @@ function isStudentAttendanceDay(dateKey, eventLookup) {
 }
 
 function buildAbScheduleMap() {
+  if (!CALENDAR_CONFIG.abScheduleEnabled) return new Map();
+
   const eventLookup = buildEventLookup(CALENDAR_CONFIG.events);
   const startKey = getFirstSchoolDayKey();
-  if (!startKey) return new Map();
+  const endKey = getLastSchoolDayKey();
+  if (!startKey || !endKey) return new Map();
 
   const schedule = new Map();
   const startDate = parseISODate(startKey);
-  const endDate = new Date(
-    CALENDAR_CONFIG.startYear,
-    CALENDAR_CONFIG.startMonth + CALENDAR_CONFIG.monthsToRender,
-    0
-  );
+  const endDate = parseISODate(endKey);
   let nextLabel = "A";
 
   for (const cursor = new Date(startDate); cursor <= endDate; cursor.setDate(cursor.getDate() + 1)) {
@@ -1229,6 +1272,14 @@ function getHighestPriorityEventType(eventTypes) {
   return eventTypes
     .slice()
     .sort((left, right) => (EVENT_TYPE_PRIORITY[left] ?? 99) - (EVENT_TYPE_PRIORITY[right] ?? 99))[0];
+}
+
+function resolveDayFillType(dayEvents, abDay) {
+  const dominantEventType = getHighestPriorityEventType(dayEvents);
+  if (abDay === "B" && dayEvents.includes("earlyRelease")) return "abSchedule";
+  if (FILLED_EVENT_TYPES.has(dominantEventType)) return dominantEventType;
+  if (abDay === "B") return "abSchedule";
+  return "";
 }
 
 function sortEntriesByPriority(entries) {
@@ -1328,21 +1379,29 @@ function renderCalendar() {
   schoolYearLabel.textContent = CALENDAR_CONFIG.schoolYearLabel;
 
   const filteredEvents = CALENDAR_CONFIG.events.filter((event) =>
-    FILTER_STATE.visibleEventTypes.has(event.type)
+    isEventTypeAllowed(event.type) && FILTER_STATE.visibleEventTypes.has(event.type)
   );
   const filteredMarkers = CALENDAR_CONFIG.gradingMarkers.filter((marker) =>
-    FILTER_STATE.visibleMarkerTypes.has(marker.type)
+    isMarkerTypeAllowed(marker.type) && FILTER_STATE.visibleMarkerTypes.has(marker.type)
   );
   const filteredEventRules = CALENDAR_CONFIG.eventRules.filter((rule) =>
-    rule.enabled !== false && FILTER_STATE.visibleEventTypes.has(rule.type)
+    rule.enabled !== false && isEventTypeAllowed(rule.type) && FILTER_STATE.visibleEventTypes.has(rule.type)
   );
   const abScheduleMap = buildAbScheduleMap();
-  const showAbSchedule = FILTER_STATE.visibleEventTypes.has("abSchedule") && abScheduleMap.size > 0;
+  const showAbSchedule =
+    CALENDAR_CONFIG.abScheduleEnabled &&
+    isEventTypeAllowed("abSchedule") &&
+    FILTER_STATE.visibleEventTypes.has("abSchedule") &&
+    abScheduleMap.size > 0;
   const eventLookup = buildEventLookup(filteredEvents);
   const markerLookup = buildMarkerLookup(filteredMarkers);
   const namedImportant = buildNamedImportantFromEventRules(filteredEventRules);
   const hasNamedImportantSource = CALENDAR_CONFIG.eventRules.some(
-    (rule) => rule.enabled !== false && typeof rule.name === "string" && rule.name.trim()
+    (rule) =>
+      rule.enabled !== false &&
+      isEventTypeAllowed(rule.type) &&
+      typeof rule.name === "string" &&
+      rule.name.trim()
   );
   const importantEntries = hasNamedImportantSource
     ? namedImportant
@@ -1443,13 +1502,13 @@ function renderCalendar() {
           });
         }
 
-        const dominantEventType = getHighestPriorityEventType(dayEvents);
         const abDay = showAbSchedule ? abScheduleMap.get(cell.key) || "" : "";
-        if (FILLED_EVENT_TYPES.has(dominantEventType)) {
-          dayCell.style.backgroundColor = resolveAccentColorForType(dominantEventType);
-        } else if (abDay === "B") {
+        const fillType = resolveDayFillType(dayEvents, abDay);
+        if (fillType) {
+          dayCell.style.backgroundColor = resolveAccentColorForType(fillType);
+        }
+        if (abDay === "B") {
           dayCell.classList.add("day-cell-ab-b");
-          dayCell.style.backgroundColor = resolveAccentColorForType("abSchedule");
         }
 
         if (dayEvents.includes("earlyRelease")) {
