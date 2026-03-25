@@ -151,7 +151,6 @@ const CALENDAR_CONFIG = {
     gp6: { label: "6-Week Grading Periods", className: "event-gp6" },
     gp9: { label: "9-Week Grading Periods", className: "event-gp9" }
   },
-  abScheduleEnabled: false,
   eventRules: DEFAULT_EVENT_RULES.map((rule) => ({ ...rule })),
   events: [],
   gradingMarkers: [],
@@ -168,7 +167,8 @@ const EVENT_TYPE_PRIORITY = {
   teacherProfessionalLearning: 2,
   newTeacherTraining: 3,
   studentStaffHoliday: 4,
-  proposedStaar: 5,
+  proposedStaar: 5
+  ,
   abSchedule: 6
 };
 const NON_ATTENDANCE_EVENT_TYPES = new Set([
@@ -298,14 +298,7 @@ const FILTER_STATE = {
 const DISPLAY_STATE = {
   isEmbedded: parseBooleanParam(urlParams.get("embed"), window.self !== window.top),
   showHeader: parseBooleanParam(urlParams.get("header"), true),
-  showImportantDates: parseBooleanParam(urlParams.get("dates"), true),
-  allowedEventTypes: {
-    abSchedule: parseBooleanParam(urlParams.get("ABdays"), true)
-  },
-  allowedMarkerTypes: {
-    gp6: parseBooleanParam(urlParams.get("6week"), true),
-    gp9: parseBooleanParam(urlParams.get("9week"), true)
-  }
+  showImportantDates: parseBooleanParam(urlParams.get("dates"), true)
 };
 
 const STACKED_LAYOUT_QUERY = window.matchMedia("(max-width: 1220px) and (max-aspect-ratio: 4/3)");
@@ -503,10 +496,6 @@ function applyControlData(data) {
     CALENDAR_CONFIG.monthsToRender = data.monthsToRender;
   }
 
-  if (typeof data.abScheduleEnabled === "boolean") {
-    CALENDAR_CONFIG.abScheduleEnabled = data.abScheduleEnabled;
-  }
-
   if (Array.isArray(data.eventRules)) {
     CALENDAR_CONFIG.eventRules = sanitizeEventRules(data.eventRules);
     CALENDAR_CONFIG.events = expandEventRules(CALENDAR_CONFIG.eventRules);
@@ -528,20 +517,6 @@ function applyControlData(data) {
       CALENDAR_CONFIG.importantDates = cleaned;
     }
   }
-}
-
-function isEventTypeAllowed(type) {
-  if (Object.prototype.hasOwnProperty.call(DISPLAY_STATE.allowedEventTypes, type)) {
-    return DISPLAY_STATE.allowedEventTypes[type];
-  }
-  return true;
-}
-
-function isMarkerTypeAllowed(type) {
-  if (Object.prototype.hasOwnProperty.call(DISPLAY_STATE.allowedMarkerTypes, type)) {
-    return DISPLAY_STATE.allowedMarkerTypes[type];
-  }
-  return true;
 }
 
 async function loadSharedControls() {
@@ -636,33 +611,22 @@ function getAvailableFilterTypes() {
 
   if (Array.isArray(CALENDAR_CONFIG.eventRules) && CALENDAR_CONFIG.eventRules.length > 0) {
     CALENDAR_CONFIG.eventRules.forEach((rule) => {
-      if (
-        !rule ||
-        rule.enabled === false ||
-        !CALENDAR_CONFIG.eventTypes[rule.type] ||
-        !isEventTypeAllowed(rule.type)
-      ) {
-        return;
-      }
+      if (!rule || rule.enabled === false || !CALENDAR_CONFIG.eventTypes[rule.type]) return;
       eventTypes.add(rule.type);
     });
   } else {
     CALENDAR_CONFIG.events.forEach((event) => {
-      if (!event || !CALENDAR_CONFIG.eventTypes[event.type] || !isEventTypeAllowed(event.type)) return;
+      if (!event || !CALENDAR_CONFIG.eventTypes[event.type]) return;
       eventTypes.add(event.type);
     });
   }
 
   CALENDAR_CONFIG.gradingMarkers.forEach((marker) => {
-    if (!marker || !CALENDAR_CONFIG.gradingMarkerTypes[marker.type] || !isMarkerTypeAllowed(marker.type)) {
-      return;
-    }
+    if (!marker || !CALENDAR_CONFIG.gradingMarkerTypes[marker.type]) return;
     markerTypes.add(marker.type);
   });
 
-  if (CALENDAR_CONFIG.abScheduleEnabled && isEventTypeAllowed("abSchedule") && abScheduleMap.size > 0) {
-    eventTypes.add("abSchedule");
-  }
+  if (abScheduleMap.size > 0) eventTypes.add("abSchedule");
 
   return { eventTypes, markerTypes };
 }
@@ -1211,14 +1175,6 @@ function getFirstSchoolDayKey() {
   return firstLastDays[0] || "";
 }
 
-function getLastSchoolDayKey() {
-  const firstLastDays = CALENDAR_CONFIG.events
-    .filter((event) => event.type === "firstLastDay")
-    .map((event) => event.date)
-    .sort();
-  return firstLastDays[firstLastDays.length - 1] || "";
-}
-
 function isStudentAttendanceDay(dateKey, eventLookup) {
   if (isWeekendISO(dateKey)) return false;
   const dayEvents = eventLookup[dateKey] || [];
@@ -1226,16 +1182,17 @@ function isStudentAttendanceDay(dateKey, eventLookup) {
 }
 
 function buildAbScheduleMap() {
-  if (!CALENDAR_CONFIG.abScheduleEnabled) return new Map();
-
   const eventLookup = buildEventLookup(CALENDAR_CONFIG.events);
   const startKey = getFirstSchoolDayKey();
-  const endKey = getLastSchoolDayKey();
-  if (!startKey || !endKey) return new Map();
+  if (!startKey) return new Map();
 
   const schedule = new Map();
   const startDate = parseISODate(startKey);
-  const endDate = parseISODate(endKey);
+  const endDate = new Date(
+    CALENDAR_CONFIG.startYear,
+    CALENDAR_CONFIG.startMonth + CALENDAR_CONFIG.monthsToRender,
+    0
+  );
   let nextLabel = "A";
 
   for (const cursor = new Date(startDate); cursor <= endDate; cursor.setDate(cursor.getDate() + 1)) {
@@ -1272,14 +1229,6 @@ function getHighestPriorityEventType(eventTypes) {
   return eventTypes
     .slice()
     .sort((left, right) => (EVENT_TYPE_PRIORITY[left] ?? 99) - (EVENT_TYPE_PRIORITY[right] ?? 99))[0];
-}
-
-function resolveDayFillType(dayEvents, abDay) {
-  const dominantEventType = getHighestPriorityEventType(dayEvents);
-  if (abDay === "B" && dayEvents.includes("earlyRelease")) return "abSchedule";
-  if (FILLED_EVENT_TYPES.has(dominantEventType)) return dominantEventType;
-  if (abDay === "B") return "abSchedule";
-  return "";
 }
 
 function sortEntriesByPriority(entries) {
@@ -1363,6 +1312,187 @@ function shouldSplitBetweenCells(leftCell, rightCell, eventLookup, markerLookup)
   return left.hasVisual && right.hasVisual && left.signature !== right.signature;
 }
 
+function roundGeometryValue(value) {
+  return Math.round(value * 100) / 100;
+}
+
+function createPointKey(x, y) {
+  return `${roundGeometryValue(x)},${roundGeometryValue(y)}`;
+}
+
+function mergeLinearSegments(segments) {
+  const buckets = new Map();
+
+  segments.forEach((segment) => {
+    const axisKey =
+      segment.side === "top" || segment.side === "bottom"
+        ? `${segment.side}:${segment.y1}`
+        : `${segment.side}:${segment.x1}`;
+    if (!buckets.has(axisKey)) buckets.set(axisKey, []);
+    buckets.get(axisKey).push(segment);
+  });
+
+  const mergedSegments = [];
+
+  buckets.forEach((bucketSegments, axisKey) => {
+    const isHorizontal = axisKey.startsWith("top:") || axisKey.startsWith("bottom:");
+    bucketSegments.sort((a, b) => (isHorizontal ? a.x1 - b.x1 : a.y1 - b.y1));
+    let active = null;
+
+    bucketSegments.forEach((segment) => {
+      if (!active) {
+        active = { ...segment };
+        return;
+      }
+
+      const touches = isHorizontal
+        ? Math.abs(segment.x1 - active.x2) <= 0.25
+        : Math.abs(segment.y1 - active.y2) <= 0.25;
+
+      if (touches) {
+        if (isHorizontal) active.x2 = Math.max(active.x2, segment.x2);
+        else active.y2 = Math.max(active.y2, segment.y2);
+        return;
+      }
+
+      mergedSegments.push(active);
+      active = { ...segment };
+    });
+
+    if (active) mergedSegments.push(active);
+  });
+
+  return mergedSegments;
+}
+
+function getPerimeterSegment(segment, offset = 1.5) {
+  if (segment.side === "top") {
+    return { ...segment, x1: segment.x1 + offset, x2: segment.x2 - offset, y1: segment.y1 - offset, y2: segment.y2 - offset };
+  }
+  if (segment.side === "bottom") {
+    return { ...segment, x1: segment.x1 + offset, x2: segment.x2 - offset, y1: segment.y1 + offset, y2: segment.y2 + offset };
+  }
+  if (segment.side === "left") {
+    return { ...segment, x1: segment.x1 - offset, x2: segment.x2 - offset, y1: segment.y1 + offset, y2: segment.y2 - offset };
+  }
+  return { ...segment, x1: segment.x1 + offset, x2: segment.x2 + offset, y1: segment.y1 + offset, y2: segment.y2 - offset };
+}
+
+function buildLoopsFromSegments(segments) {
+  const points = new Map();
+  const adjacency = new Map();
+
+  segments.forEach((segment, index) => {
+    const aKey = createPointKey(segment.x1, segment.y1);
+    const bKey = createPointKey(segment.x2, segment.y2);
+    if (!points.has(aKey)) points.set(aKey, { x: roundGeometryValue(segment.x1), y: roundGeometryValue(segment.y1) });
+    if (!points.has(bKey)) points.set(bKey, { x: roundGeometryValue(segment.x2), y: roundGeometryValue(segment.y2) });
+    if (!adjacency.has(aKey)) adjacency.set(aKey, []);
+    if (!adjacency.has(bKey)) adjacency.set(bKey, []);
+    adjacency.get(aKey).push({ neighborKey: bKey, segmentIndex: index });
+    adjacency.get(bKey).push({ neighborKey: aKey, segmentIndex: index });
+  });
+
+  const visited = new Set();
+  const loops = [];
+
+  segments.forEach((segment, index) => {
+    if (visited.has(index)) return;
+
+    const startKey = createPointKey(segment.x1, segment.y1);
+    let currentKey = createPointKey(segment.x2, segment.y2);
+    const loop = [points.get(startKey)];
+    visited.add(index);
+
+    while (currentKey !== startKey) {
+      loop.push(points.get(currentKey));
+      const nextEdge = (adjacency.get(currentKey) || []).find((edge) => !visited.has(edge.segmentIndex));
+      if (!nextEdge) break;
+      visited.add(nextEdge.segmentIndex);
+      currentKey = nextEdge.neighborKey;
+    }
+
+    if (loop.length >= 2) loops.push(loop);
+  });
+
+  return loops;
+}
+
+function createPathData(loop) {
+  if (!loop || loop.length === 0) return "";
+  const [firstPoint, ...rest] = loop;
+  return `M ${firstPoint.x} ${firstPoint.y} ${rest.map((point) => `L ${point.x} ${point.y}`).join(" ")} Z`;
+}
+
+function renderStaarOverlay(daysGrid, staarCells, cellMatrix) {
+  if (!daysGrid || staarCells.length === 0 || !cellMatrix?.length) return;
+
+  const gridWidth = daysGrid.clientWidth;
+  const gridHeight = daysGrid.clientHeight;
+  if (!gridWidth || !gridHeight) return;
+
+  const xStarts = [];
+  const xEnds = [];
+  const yStarts = [];
+  const yEnds = [];
+
+  for (let columnIndex = 0; columnIndex < 7; columnIndex += 1) {
+    const sampleCell = cellMatrix[0]?.[columnIndex];
+    if (!sampleCell) return;
+    xStarts[columnIndex] = sampleCell.offsetLeft;
+    xEnds[columnIndex] = sampleCell.offsetLeft + sampleCell.offsetWidth;
+  }
+
+  for (let rowIndex = 0; rowIndex < cellMatrix.length; rowIndex += 1) {
+    const sampleCell = cellMatrix[rowIndex]?.[0];
+    if (!sampleCell) return;
+    yStarts[rowIndex] = sampleCell.offsetTop;
+    yEnds[rowIndex] = sampleCell.offsetTop + sampleCell.offsetHeight;
+  }
+
+  const occupied = new Set(staarCells.map(({ rowIndex, columnIndex }) => `${rowIndex}:${columnIndex}`));
+  const rawSegments = [];
+
+  staarCells.forEach(({ rowIndex, columnIndex }) => {
+    const left = xStarts[columnIndex];
+    const right = xEnds[columnIndex];
+    const top = yStarts[rowIndex];
+    const bottom = yEnds[rowIndex];
+    const topNeighbor = occupied.has(`${rowIndex - 1}:${columnIndex}`);
+    const rightNeighbor = occupied.has(`${rowIndex}:${columnIndex + 1}`);
+    const bottomNeighbor = occupied.has(`${rowIndex + 1}:${columnIndex}`);
+    const leftNeighbor = occupied.has(`${rowIndex}:${columnIndex - 1}`);
+
+    if (!topNeighbor) rawSegments.push({ side: "top", x1: left, y1: top, x2: right, y2: top });
+    if (!rightNeighbor) rawSegments.push({ side: "right", x1: right, y1: top, x2: right, y2: bottom });
+    if (!bottomNeighbor) rawSegments.push({ side: "bottom", x1: left, y1: bottom, x2: right, y2: bottom });
+    if (!leftNeighbor) rawSegments.push({ side: "left", x1: left, y1: top, x2: left, y2: bottom });
+  });
+
+  const perimeterSegments = mergeLinearSegments(rawSegments).map((segment) =>
+    getPerimeterSegment(segment)
+  );
+  const loops = buildLoopsFromSegments(perimeterSegments);
+  if (loops.length === 0) return;
+
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("class", "staar-overlay");
+  svg.setAttribute("viewBox", `0 0 ${roundGeometryValue(gridWidth)} ${roundGeometryValue(gridHeight)}`);
+  svg.setAttribute("preserveAspectRatio", "none");
+  svg.setAttribute("aria-hidden", "true");
+
+  loops.forEach((loop) => {
+    const pathData = createPathData(loop);
+    if (!pathData) return;
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("class", "staar-perimeter");
+    path.setAttribute("d", pathData);
+    svg.appendChild(path);
+  });
+
+  daysGrid.appendChild(svg);
+}
+
 function renderCalendar() {
   const t = getCurrentTranslations();
   const schoolYearLabel = document.getElementById("schoolYearLabel");
@@ -1379,29 +1509,21 @@ function renderCalendar() {
   schoolYearLabel.textContent = CALENDAR_CONFIG.schoolYearLabel;
 
   const filteredEvents = CALENDAR_CONFIG.events.filter((event) =>
-    isEventTypeAllowed(event.type) && FILTER_STATE.visibleEventTypes.has(event.type)
+    FILTER_STATE.visibleEventTypes.has(event.type)
   );
   const filteredMarkers = CALENDAR_CONFIG.gradingMarkers.filter((marker) =>
-    isMarkerTypeAllowed(marker.type) && FILTER_STATE.visibleMarkerTypes.has(marker.type)
+    FILTER_STATE.visibleMarkerTypes.has(marker.type)
   );
   const filteredEventRules = CALENDAR_CONFIG.eventRules.filter((rule) =>
-    rule.enabled !== false && isEventTypeAllowed(rule.type) && FILTER_STATE.visibleEventTypes.has(rule.type)
+    rule.enabled !== false && FILTER_STATE.visibleEventTypes.has(rule.type)
   );
   const abScheduleMap = buildAbScheduleMap();
-  const showAbSchedule =
-    CALENDAR_CONFIG.abScheduleEnabled &&
-    isEventTypeAllowed("abSchedule") &&
-    FILTER_STATE.visibleEventTypes.has("abSchedule") &&
-    abScheduleMap.size > 0;
+  const showAbSchedule = FILTER_STATE.visibleEventTypes.has("abSchedule") && abScheduleMap.size > 0;
   const eventLookup = buildEventLookup(filteredEvents);
   const markerLookup = buildMarkerLookup(filteredMarkers);
   const namedImportant = buildNamedImportantFromEventRules(filteredEventRules);
   const hasNamedImportantSource = CALENDAR_CONFIG.eventRules.some(
-    (rule) =>
-      rule.enabled !== false &&
-      isEventTypeAllowed(rule.type) &&
-      typeof rule.name === "string" &&
-      rule.name.trim()
+    (rule) => rule.enabled !== false && typeof rule.name === "string" && rule.name.trim()
   );
   const importantEntries = hasNamedImportantSource
     ? namedImportant
@@ -1477,13 +1599,18 @@ function renderCalendar() {
       if (weeks.length === 6 && weekHasOnlyWeekendMonthDays(weeks[weeks.length - 1])) weeks.pop();
     }
 
-    weeks.forEach((week) => {
+    const staarCells = [];
+    const cellMatrix = [];
+
+    weeks.forEach((week, weekIndex) => {
+      cellMatrix[weekIndex] = [];
       week.forEach((cell, dayIndex) => {
         if (cell.type === "spacer") {
           const spacer = document.createElement("li");
           spacer.className = "day-cell spacer";
           spacer.innerHTML = '<span class="day-glyph" aria-hidden="true"><span class="day-dot"></span></span>';
           daysGrid.appendChild(spacer);
+          cellMatrix[weekIndex][dayIndex] = spacer;
           return;
         }
 
@@ -1502,13 +1629,16 @@ function renderCalendar() {
           });
         }
 
+        const dominantEventType = getHighestPriorityEventType(dayEvents);
         const abDay = showAbSchedule ? abScheduleMap.get(cell.key) || "" : "";
-        const fillType = resolveDayFillType(dayEvents, abDay);
-        if (fillType) {
-          dayCell.style.backgroundColor = resolveAccentColorForType(fillType);
-        }
-        if (abDay === "B") {
+        if (FILLED_EVENT_TYPES.has(dominantEventType)) {
+          dayCell.style.backgroundColor = resolveAccentColorForType(dominantEventType);
+        } else if (abDay === "B") {
           dayCell.classList.add("day-cell-ab-b");
+          dayCell.style.backgroundColor = resolveAccentColorForType("abSchedule");
+        }
+        if (dayEvents.includes("proposedStaar") && dominantEventType === "proposedStaar") {
+          staarCells.push({ rowIndex: weekIndex, columnIndex: dayIndex });
         }
 
         if (dayEvents.includes("earlyRelease")) {
@@ -1549,12 +1679,14 @@ function renderCalendar() {
         }
 
         daysGrid.appendChild(dayCell);
+        cellMatrix[weekIndex][dayIndex] = dayCell;
         if (!dayCellMap.has(cell.key)) dayCellMap.set(cell.key, []);
         dayCellMap.get(cell.key).push(dayCell);
       });
     });
 
     calendarGrid.appendChild(monthCard);
+    renderStaarOverlay(daysGrid, staarCells, cellMatrix);
   }
 
   Object.values(CALENDAR_CONFIG.eventTypes).forEach((eventType) => {

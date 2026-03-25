@@ -15,7 +15,7 @@
   --first-last: #b18fc2;
   --gp6: #005987;
   --gp9: #ffc000;
-  --staar: #dacce5;
+  --staar: #fcb142;
   --ab-b-day: #efc4d2;
   --day-slot-h: clamp(1.3rem, 0.18vw + 1.22rem, 1.48rem);
   --marker-depth: clamp(0.24rem, 0.08vw + 0.22rem, 0.38rem);
@@ -264,11 +264,6 @@ body {
 
 .filter-chip-swatch-frame {
   border: var(--frame-stroke) solid var(--first-last);
-}
-
-.filter-chip-swatch.event-staar {
-  background: transparent;
-  box-shadow: inset 0 0 0 2px var(--staar);
 }
 
 .filter-chip-label {
@@ -541,7 +536,6 @@ body {
 
 .event-staar {
   background: transparent;
-  box-shadow: inset 0 0 0 2px var(--staar);
 }
 
 .day-cell-er .day-number {
@@ -562,6 +556,24 @@ body {
 
 .day-bracket-gp9 {
   --marker-color: var(--gp9);
+}
+
+.staar-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+  z-index: 2;
+}
+
+.staar-perimeter {
+  fill: none;
+  stroke: var(--staar);
+  stroke-width: 2.4px;
+  stroke-linejoin: miter;
+  stroke-linecap: square;
 }
 
 .day-bracket-start {
