@@ -119,6 +119,17 @@ const DEFAULT_GRADING_MARKERS = [
   { type: "gp9", date: "2027-05-27", side: "end" }
 ];
 
+function createInitialFilterState() {
+  const visibleEventTypes = new Set(Object.keys(CALENDAR_CONFIG.eventTypes));
+  const visibleMarkerTypes = new Set(Object.keys(CALENDAR_CONFIG.gradingMarkerTypes));
+
+  if (!parseBooleanParam(urlParams.get("6week"), true)) visibleMarkerTypes.delete("gp6");
+  if (!parseBooleanParam(urlParams.get("9week"), true)) visibleMarkerTypes.delete("gp9");
+  if (!parseBooleanParam(urlParams.get("abdays"), true)) visibleEventTypes.delete("abSchedule");
+
+  return { visibleEventTypes, visibleMarkerTypes };
+}
+
 const DEFAULT_IMPORTANT_DATES = [
   { label: "First Day of School", dateText: "Aug. 12, 2026" },
   { label: "Fall Break (Student / Staff Holiday)", dateText: "Nov. 23-27, 2026" },
@@ -154,6 +165,7 @@ const CALENDAR_CONFIG = {
   eventRules: DEFAULT_EVENT_RULES.map((rule) => ({ ...rule })),
   events: [],
   gradingMarkers: [],
+  abScheduleEnabled: false,
   importantDates: DEFAULT_IMPORTANT_DATES.map((entry) => ({ ...entry }))
 };
 
@@ -213,6 +225,7 @@ const TRANSLATIONS = {
       gp6: "6-Week Grading Periods",
       gp9: "9-Week Grading Periods"
     },
+    abScheduleCompact: "A/B Schedule",
     phraseTranslations: {
       "New Teacher Training": "New Teacher Training",
       "Professional Learning": "Professional Learning",
@@ -265,6 +278,7 @@ const TRANSLATIONS = {
       gp6: "Períodos de calificación de 6 semanas",
       gp9: "Períodos de calificación de 9 semanas"
     },
+    abScheduleCompact: "Horario A/B",
     phraseTranslations: {
       "New Teacher Training": "Capacitación para maestros nuevos",
       "Professional Learning": "Aprendizaje profesional",
@@ -290,10 +304,7 @@ const TRANSLATIONS = {
   }
 };
 
-const FILTER_STATE = {
-  visibleEventTypes: new Set(Object.keys(CALENDAR_CONFIG.eventTypes)),
-  visibleMarkerTypes: new Set(Object.keys(CALENDAR_CONFIG.gradingMarkerTypes))
-};
+const FILTER_STATE = createInitialFilterState();
 
 const DISPLAY_STATE = {
   isEmbedded: parseBooleanParam(urlParams.get("embed"), window.self !== window.top),
@@ -496,6 +507,10 @@ function applyControlData(data) {
     CALENDAR_CONFIG.monthsToRender = data.monthsToRender;
   }
 
+  if (typeof data.abScheduleEnabled === "boolean") {
+    CALENDAR_CONFIG.abScheduleEnabled = data.abScheduleEnabled;
+  }
+
   if (Array.isArray(data.eventRules)) {
     CALENDAR_CONFIG.eventRules = sanitizeEventRules(data.eventRules);
     CALENDAR_CONFIG.events = expandEventRules(CALENDAR_CONFIG.eventRules);
@@ -530,6 +545,7 @@ async function loadSharedControls() {
 }
 
 function seedDefaultData() {
+  CALENDAR_CONFIG.abScheduleEnabled = false;
   CALENDAR_CONFIG.eventRules = sanitizeEventRules(DEFAULT_EVENT_RULES);
   CALENDAR_CONFIG.events = expandEventRules(DEFAULT_EVENT_RULES);
   CALENDAR_CONFIG.gradingMarkers = DEFAULT_GRADING_MARKERS.map((marker) => ({ ...marker }));
@@ -690,19 +706,27 @@ function renderEventFilters() {
       swatch.textContent = t.earlyReleaseBadge;
     } else if (filter.type === "firstLastDay") {
       swatch.classList.add("filter-chip-swatch-frame");
+    } else if (filter.type === "proposedStaar") {
+      swatch.classList.add("filter-chip-swatch-staar");
     } else if (filter.type === "abSchedule") {
       swatch.classList.add("filter-chip-swatch-ab");
       swatch.innerHTML = `
-        <span class="filter-chip-ab-box filter-chip-ab-a">A</span>
-        <span class="filter-chip-ab-slash">/</span>
-        <span class="filter-chip-ab-box filter-chip-ab-b">B</span>
+        <span class="filter-chip-ab-shell">
+          <span class="filter-chip-ab-box filter-chip-ab-a">A</span>
+          <span class="filter-chip-ab-divider" aria-hidden="true"></span>
+          <span class="filter-chip-ab-box filter-chip-ab-b">B</span>
+        </span>
       `;
     }
 
     const label = document.createElement("span");
     label.className = "filter-chip-label";
     label.textContent =
-      filter.type === "teacherProfessionalLearning" ? t.professionalLearningCompact : filter.label;
+      filter.type === "teacherProfessionalLearning"
+        ? t.professionalLearningCompact
+        : filter.type === "abSchedule"
+          ? t.abScheduleCompact
+          : filter.label;
 
     button.appendChild(swatch);
     button.appendChild(label);
@@ -1175,6 +1199,14 @@ function getFirstSchoolDayKey() {
   return firstLastDays[0] || "";
 }
 
+function getLastSchoolDayKey() {
+  const firstLastDays = CALENDAR_CONFIG.events
+    .filter((event) => event.type === "firstLastDay")
+    .map((event) => event.date)
+    .sort();
+  return firstLastDays[firstLastDays.length - 1] || "";
+}
+
 function isStudentAttendanceDay(dateKey, eventLookup) {
   if (isWeekendISO(dateKey)) return false;
   const dayEvents = eventLookup[dateKey] || [];
@@ -1184,18 +1216,18 @@ function isStudentAttendanceDay(dateKey, eventLookup) {
 function buildAbScheduleMap() {
   const eventLookup = buildEventLookup(CALENDAR_CONFIG.events);
   const startKey = getFirstSchoolDayKey();
+  const lastKey = getLastSchoolDayKey();
   if (!startKey) return new Map();
+  if (CALENDAR_CONFIG.abScheduleEnabled !== true) return new Map();
 
   const schedule = new Map();
   const startDate = parseISODate(startKey);
-  const endDate = new Date(
-    CALENDAR_CONFIG.startYear,
-    CALENDAR_CONFIG.startMonth + CALENDAR_CONFIG.monthsToRender,
-    0
-  );
+  const endDate = lastKey
+    ? parseISODate(lastKey)
+    : new Date(CALENDAR_CONFIG.startYear, CALENDAR_CONFIG.startMonth + CALENDAR_CONFIG.monthsToRender, 0);
   let nextLabel = "A";
 
-  for (const cursor = new Date(startDate); cursor <= endDate; cursor.setDate(cursor.getDate() + 1)) {
+  for (const cursor = new Date(startDate); cursor < endDate; cursor.setDate(cursor.getDate() + 1)) {
     const dateKey = createDateKey(cursor);
     if (!isStudentAttendanceDay(dateKey, eventLookup)) continue;
     schedule.set(dateKey, nextLabel);
@@ -1365,19 +1397,6 @@ function mergeLinearSegments(segments) {
   return mergedSegments;
 }
 
-function getPerimeterSegment(segment, offset = 1.5) {
-  if (segment.side === "top") {
-    return { ...segment, x1: segment.x1 + offset, x2: segment.x2 - offset, y1: segment.y1 - offset, y2: segment.y2 - offset };
-  }
-  if (segment.side === "bottom") {
-    return { ...segment, x1: segment.x1 + offset, x2: segment.x2 - offset, y1: segment.y1 + offset, y2: segment.y2 + offset };
-  }
-  if (segment.side === "left") {
-    return { ...segment, x1: segment.x1 - offset, x2: segment.x2 - offset, y1: segment.y1 + offset, y2: segment.y2 - offset };
-  }
-  return { ...segment, x1: segment.x1 + offset, x2: segment.x2 + offset, y1: segment.y1 + offset, y2: segment.y2 - offset };
-}
-
 function buildLoopsFromSegments(segments) {
   const points = new Map();
   const adjacency = new Map();
@@ -1469,9 +1488,7 @@ function renderStaarOverlay(daysGrid, staarCells, cellMatrix) {
     if (!leftNeighbor) rawSegments.push({ side: "left", x1: left, y1: top, x2: left, y2: bottom });
   });
 
-  const perimeterSegments = mergeLinearSegments(rawSegments).map((segment) =>
-    getPerimeterSegment(segment)
-  );
+  const perimeterSegments = mergeLinearSegments(rawSegments);
   const loops = buildLoopsFromSegments(perimeterSegments);
   if (loops.length === 0) return;
 
@@ -1631,7 +1648,9 @@ function renderCalendar() {
 
         const dominantEventType = getHighestPriorityEventType(dayEvents);
         const abDay = showAbSchedule ? abScheduleMap.get(cell.key) || "" : "";
-        if (FILLED_EVENT_TYPES.has(dominantEventType)) {
+        if (dayEvents.includes("firstLastDay") && dayEvents.includes("earlyRelease")) {
+          dayCell.style.backgroundColor = resolveAccentColorForType("firstLastDay");
+        } else if (FILLED_EVENT_TYPES.has(dominantEventType)) {
           dayCell.style.backgroundColor = resolveAccentColorForType(dominantEventType);
         } else if (abDay === "B") {
           dayCell.classList.add("day-cell-ab-b");
