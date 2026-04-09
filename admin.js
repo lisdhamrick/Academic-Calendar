@@ -3,6 +3,7 @@ const SETTINGS_KEY =
   window.ACADEMIC_CALENDAR_SETTINGS_KEY || "academicCalendarGithubSettingsV1";
 const DEFAULT_GITHUB_PATH =
   window.ACADEMIC_CALENDAR_DEFAULT_GITHUB_PATH || "calendar-controls.json";
+const LOCK_GITHUB_PATH = window.ACADEMIC_CALENDAR_LOCK_GITHUB_PATH === true;
 
 const MONTHS = [
   "January",
@@ -607,18 +608,29 @@ function collectForm() {
 }
 
 function bindGithubSettings() {
+  if (LOCK_GITHUB_PATH) {
+    githubSettings.path = DEFAULT_GITHUB_PATH;
+    saveGithubSettings(githubSettings);
+  }
+
   repoOwnerInput.value = githubSettings.owner;
   repoNameInput.value = githubSettings.repo;
   repoBranchInput.value = githubSettings.branch;
-  repoPathInput.value = githubSettings.path;
+  repoPathInput.value = LOCK_GITHUB_PATH ? DEFAULT_GITHUB_PATH : githubSettings.path;
   githubTokenInput.value = githubSettings.token;
+
+  if (LOCK_GITHUB_PATH) {
+    repoPathInput.readOnly = true;
+    repoPathInput.setAttribute("aria-readonly", "true");
+    repoPathInput.title = `Locked to ${DEFAULT_GITHUB_PATH} on this page`;
+  }
 
   [repoOwnerInput, repoNameInput, repoBranchInput, repoPathInput, githubTokenInput].forEach((input) => {
     input.addEventListener("input", () => {
       githubSettings.owner = repoOwnerInput.value.trim();
       githubSettings.repo = repoNameInput.value.trim();
       githubSettings.branch = repoBranchInput.value.trim();
-      githubSettings.path = repoPathInput.value.trim();
+      githubSettings.path = LOCK_GITHUB_PATH ? DEFAULT_GITHUB_PATH : repoPathInput.value.trim();
       githubSettings.token = githubTokenInput.value.trim();
       saveGithubSettings(githubSettings);
       setStatus("");
@@ -641,7 +653,7 @@ document.getElementById("saveControls").addEventListener("click", async () => {
   githubSettings.owner = repoOwnerInput.value.trim();
   githubSettings.repo = repoNameInput.value.trim();
   githubSettings.branch = repoBranchInput.value.trim();
-  githubSettings.path = repoPathInput.value.trim();
+  githubSettings.path = LOCK_GITHUB_PATH ? DEFAULT_GITHUB_PATH : repoPathInput.value.trim();
   githubSettings.token = githubTokenInput.value.trim();
   saveGithubSettings(githubSettings);
 
@@ -664,6 +676,10 @@ document.getElementById("saveControls").addEventListener("click", async () => {
     isDirty = false;
     setStatus("Saved to GitHub. Changes will appear on GitHub Pages after publish delay.");
   } catch (error) {
+    if (String(error.message || "").includes("GitHub save failed (404)")) {
+      setStatus(`GitHub save failed: this page should save to ${DEFAULT_GITHUB_PATH}. Check Repo Owner, Repo Name, Branch, and PAT.`, true);
+      return;
+    }
     setStatus(error.message || "Save failed.", true);
   } finally {
     saveButton.disabled = false;
