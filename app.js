@@ -1648,8 +1648,9 @@ function renderCalendar() {
 
         const dominantEventType = getHighestPriorityEventType(dayEvents);
         const abDay = showAbSchedule ? abScheduleMap.get(cell.key) || "" : "";
-        if (dayEvents.includes("firstLastDay") && dayEvents.includes("earlyRelease")) {
-          dayCell.style.backgroundColor = resolveAccentColorForType("firstLastDay");
+        if (abDay === "B" && dominantEventType === "earlyRelease") {
+          dayCell.classList.add("day-cell-ab-b");
+          dayCell.style.backgroundColor = resolveAccentColorForType("abSchedule");
         } else if (FILLED_EVENT_TYPES.has(dominantEventType)) {
           dayCell.style.backgroundColor = resolveAccentColorForType(dominantEventType);
         } else if (abDay === "B") {
