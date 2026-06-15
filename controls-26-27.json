@@ -187,17 +187,32 @@
       {
         "start": "2026-08-12",
         "end": "2026-09-18",
-        "enabled": false
+        "enabled": true
       },
       {
         "start": "2026-09-22",
         "end": "2026-10-30",
-        "enabled": false
+        "enabled": true
       },
       {
         "start": "2026-11-04",
         "end": "2026-12-18",
-        "enabled": false
+        "enabled": true
+      },
+      {
+        "start": "2027-01-05",
+        "end": "2027-02-19",
+        "enabled": true
+      },
+      {
+        "start": "2027-02-22",
+        "end": "2027-04-16",
+        "enabled": true
+      },
+      {
+        "start": "2027-04-19",
+        "end": "2027-05-27",
+        "enabled": true
       }
     ],
     "gp9": [
@@ -208,7 +223,68 @@
       }
     ]
   },
-  "gradingMarkers": [],
+  "gradingMarkers": [
+    {
+      "type": "gp6",
+      "date": "2026-08-12",
+      "side": "start"
+    },
+    {
+      "type": "gp6",
+      "date": "2026-09-18",
+      "side": "end"
+    },
+    {
+      "type": "gp6",
+      "date": "2026-09-22",
+      "side": "start"
+    },
+    {
+      "type": "gp6",
+      "date": "2026-10-30",
+      "side": "end"
+    },
+    {
+      "type": "gp6",
+      "date": "2026-11-04",
+      "side": "start"
+    },
+    {
+      "type": "gp6",
+      "date": "2026-12-18",
+      "side": "end"
+    },
+    {
+      "type": "gp6",
+      "date": "2027-01-05",
+      "side": "start"
+    },
+    {
+      "type": "gp6",
+      "date": "2027-02-19",
+      "side": "end"
+    },
+    {
+      "type": "gp6",
+      "date": "2027-02-22",
+      "side": "start"
+    },
+    {
+      "type": "gp6",
+      "date": "2027-04-16",
+      "side": "end"
+    },
+    {
+      "type": "gp6",
+      "date": "2027-04-19",
+      "side": "start"
+    },
+    {
+      "type": "gp6",
+      "date": "2027-05-27",
+      "side": "end"
+    }
+  ],
   "importantDates": [
     {
       "label": "New Teacher Training",
