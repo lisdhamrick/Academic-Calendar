@@ -4,6 +4,14 @@
   "startMonth": 6,
   "monthsToRender": 12,
   "abScheduleEnabled": true,
+  "abScheduleOverrides": [
+    {
+      "date": "2026-10-20",
+      "label": "C",
+      "nextLabel": "A",
+      "enabled": true
+    }
+  ],
   "eventRules": [
     {
       "type": "newTeacherTraining",

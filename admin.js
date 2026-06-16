@@ -34,6 +34,13 @@ const GRADING_META = {
   gp9: { label: "9-Week Grading Periods", color: "#ffc000" }
 };
 
+const AB_SCHEDULE_LABELS = ["A", "B", "C"];
+const AB_NEXT_LABELS = [
+  { value: "", label: "Auto" },
+  { value: "A", label: "A" },
+  { value: "B", label: "B" }
+];
+
 function createEmptyEventGroups() {
   return Object.keys(EVENT_META).reduce((acc, key) => {
     acc[key] = [];
@@ -77,6 +84,19 @@ function normalizeGradingRanges(saved) {
         }))
       : []
   };
+}
+
+function normalizeAbScheduleOverrides(saved) {
+  if (!Array.isArray(saved)) return [];
+  return saved
+    .filter((entry) => entry && typeof entry.date === "string" && entry.date)
+    .map((entry) => ({
+      date: entry.date || "",
+      label: AB_SCHEDULE_LABELS.includes(entry.label) ? entry.label : "A",
+      nextLabel: ["A", "B"].includes(entry.nextLabel) ? entry.nextLabel : "",
+      enabled: entry.enabled !== false
+    }))
+    .sort((left, right) => left.date.localeCompare(right.date));
 }
 
 function markersToRanges(markers, type) {
@@ -285,6 +305,7 @@ async function fetchSharedControls() {
         startMonth: 6,
         monthsToRender: 12,
         abScheduleEnabled: false,
+        abScheduleOverrides: [],
         eventGroups: createEmptyEventGroups(),
         gradingGroups: { gp6: [], gp9: [] }
       };
@@ -297,6 +318,7 @@ async function fetchSharedControls() {
       startMonth: Number.isInteger(data.startMonth) ? data.startMonth : 6,
       monthsToRender: Number.isInteger(data.monthsToRender) ? data.monthsToRender : 12,
       abScheduleEnabled: data.abScheduleEnabled === true,
+      abScheduleOverrides: normalizeAbScheduleOverrides(data.abScheduleOverrides),
       eventGroups: groupEventRules(data.eventRules || []),
       gradingGroups: data.gradingRanges
         ? normalizeGradingRanges(data.gradingRanges)
@@ -312,6 +334,7 @@ async function fetchSharedControls() {
       startMonth: 6,
       monthsToRender: 12,
       abScheduleEnabled: false,
+      abScheduleOverrides: [],
       eventGroups: createEmptyEventGroups(),
       gradingGroups: { gp6: [], gp9: [] }
     };
@@ -324,6 +347,7 @@ const state = {
   startMonth: 6,
   monthsToRender: 12,
   abScheduleEnabled: false,
+  abScheduleOverrides: [],
   eventGroups: createEmptyEventGroups(),
   gradingGroups: { gp6: [], gp9: [] }
 };
@@ -337,6 +361,7 @@ const monthsToRenderInput = document.getElementById("monthsToRender");
 const abScheduleEnabledInput = document.getElementById("abScheduleEnabled");
 const eventGroupsContainer = document.getElementById("eventGroups");
 const gradingGroupsContainer = document.getElementById("gradingGroups");
+const abScheduleOverridesContainer = document.getElementById("abScheduleOverrides");
 const statusLine = document.getElementById("statusLine");
 const saveButton = document.getElementById("saveControls");
 
@@ -394,6 +419,18 @@ function createInput(type, value) {
   input.type = type;
   input.value = value || "";
   return input;
+}
+
+function createSelect(options, value) {
+  const select = document.createElement("select");
+  options.forEach((optionConfig) => {
+    const option = document.createElement("option");
+    option.value = optionConfig.value;
+    option.textContent = optionConfig.label;
+    if (optionConfig.value === value) option.selected = true;
+    select.appendChild(option);
+  });
+  return select;
 }
 
 function renderEventGroups() {
@@ -576,6 +613,101 @@ function renderGradingGroups() {
   });
 }
 
+function renderAbScheduleOverrides() {
+  if (!abScheduleOverridesContainer) return;
+  abScheduleOverridesContainer.innerHTML = "";
+
+  const card = document.createElement("div");
+  card.className = "group-card";
+  card.style.setProperty("--group-color", "#ffb050");
+
+  const head = document.createElement("div");
+  head.className = "group-head";
+  head.innerHTML = `<h3 class="group-title">Special Schedule Days</h3>`;
+
+  const addBtn = document.createElement("button");
+  addBtn.type = "button";
+  addBtn.className = "btn";
+  addBtn.textContent = "Add Override";
+  addBtn.addEventListener("click", () => {
+    state.abScheduleOverrides.push({ date: "", label: "A", nextLabel: "", enabled: true });
+    renderAbScheduleOverrides();
+    markDirty();
+  });
+  head.appendChild(addBtn);
+
+  const table = document.createElement("table");
+  table.className = "group-table";
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Display</th>
+        <th>Next Regular Day</th>
+        <th>Show</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  `;
+
+  const tbody = table.querySelector("tbody");
+
+  state.abScheduleOverrides.forEach((override, index) => {
+    const row = document.createElement("tr");
+
+    const dateCell = document.createElement("td");
+    const dateInput = createInput("date", override.date);
+    dateInput.addEventListener("change", () => {
+      override.date = dateInput.value;
+      markDirty();
+    });
+    dateCell.appendChild(dateInput);
+
+    const labelCell = document.createElement("td");
+    const labelSelect = createSelect(
+      AB_SCHEDULE_LABELS.map((label) => ({ value: label, label })),
+      override.label
+    );
+    labelSelect.addEventListener("change", () => {
+      override.label = labelSelect.value;
+      markDirty();
+    });
+    labelCell.appendChild(labelSelect);
+
+    const nextCell = document.createElement("td");
+    const nextSelect = createSelect(AB_NEXT_LABELS, override.nextLabel || "");
+    nextSelect.addEventListener("change", () => {
+      override.nextLabel = nextSelect.value;
+      markDirty();
+    });
+    nextCell.appendChild(nextSelect);
+
+    const enabledCell = document.createElement("td");
+    const enabledInput = createInput("checkbox", "");
+    enabledInput.checked = override.enabled !== false;
+    enabledInput.addEventListener("change", () => {
+      override.enabled = enabledInput.checked;
+      markDirty();
+    });
+    enabledCell.appendChild(enabledInput);
+
+    const actionCell = document.createElement("td");
+    actionCell.appendChild(
+      createDeleteButton(() => {
+        state.abScheduleOverrides.splice(index, 1);
+        renderAbScheduleOverrides();
+      })
+    );
+
+    row.append(dateCell, labelCell, nextCell, enabledCell, actionCell);
+    tbody.appendChild(row);
+  });
+
+  card.append(head, table);
+  abScheduleOverridesContainer.appendChild(card);
+}
+
 function renderAll() {
   schoolYearLabelInput.value = state.schoolYearLabel;
   startYearInput.value = state.startYear;
@@ -584,6 +716,7 @@ function renderAll() {
   if (abScheduleEnabledInput) abScheduleEnabledInput.checked = state.abScheduleEnabled === true;
   renderEventGroups();
   renderGradingGroups();
+  renderAbScheduleOverrides();
 }
 
 function collectForm() {
@@ -593,6 +726,14 @@ function collectForm() {
     startMonth: Number(startMonthSelect.value),
     monthsToRender: Number(monthsToRenderInput.value),
     abScheduleEnabled: abScheduleEnabledInput ? abScheduleEnabledInput.checked : false,
+    abScheduleOverrides: state.abScheduleOverrides
+      .filter((override) => override.date)
+      .map((override) => ({
+        date: override.date,
+        label: override.label,
+        nextLabel: override.nextLabel || "",
+        enabled: override.enabled !== false
+      })),
     eventRules: flattenEventRules(state.eventGroups),
     gradingRanges: {
       gp6: (state.gradingGroups.gp6 || [])
@@ -694,6 +835,7 @@ document.getElementById("resetDefaults").addEventListener("click", async () => {
   state.startMonth = fresh.startMonth;
   state.monthsToRender = fresh.monthsToRender;
   state.abScheduleEnabled = fresh.abScheduleEnabled === true;
+  state.abScheduleOverrides = deepClone(fresh.abScheduleOverrides || []);
   state.eventGroups = deepClone(fresh.eventGroups || createEmptyEventGroups());
   state.gradingGroups = deepClone(fresh.gradingGroups || { gp6: [], gp9: [] });
   renderAll();
@@ -703,6 +845,7 @@ document.getElementById("resetDefaults").addEventListener("click", async () => {
 
 document.getElementById("clearSaved").addEventListener("click", () => {
   state.abScheduleEnabled = false;
+  state.abScheduleOverrides = [];
   state.eventGroups = createEmptyEventGroups();
   state.gradingGroups = { gp6: [], gp9: [] };
   renderAll();
@@ -718,6 +861,7 @@ fetchSharedControls().then((fresh) => {
   state.startMonth = fresh.startMonth;
   state.monthsToRender = fresh.monthsToRender;
   state.abScheduleEnabled = fresh.abScheduleEnabled === true;
+  state.abScheduleOverrides = deepClone(fresh.abScheduleOverrides || []);
   state.eventGroups = deepClone(fresh.eventGroups || createEmptyEventGroups());
   state.gradingGroups = deepClone(fresh.gradingGroups || { gp6: [], gp9: [] });
   renderAll();

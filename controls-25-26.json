@@ -4,6 +4,7 @@
   "startMonth": 6,
   "monthsToRender": 12,
   "abScheduleEnabled": true,
+  "abScheduleOverrides": [],
   "eventRules": [
     {
       "type": "newTeacherTraining",

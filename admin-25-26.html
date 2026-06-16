@@ -214,7 +214,7 @@
               <input id="monthsToRender" type="number" min="1" max="24" />
             </div>
             <div class="admin-field admin-field-checkbox">
-              <label for="abScheduleEnabled">Allow A/B Schedule Layer</label>
+              <label for="abScheduleEnabled">Allow A/B/C Schedule Layer</label>
               <input id="abScheduleEnabled" type="checkbox" />
             </div>
           </div>
@@ -231,6 +231,15 @@
         <section class="admin-section">
           <h2>Grading Period Ranges</h2>
           <div id="gradingGroups" class="group-grid"></div>
+        </section>
+
+        <section class="admin-section">
+          <h2>A/B/C Schedule Overrides</h2>
+          <p class="help">
+            Use these for exceptions like testing days. “Next Regular Day” lets you resume the normal
+            pattern on whichever letter should come next.
+          </p>
+          <div id="abScheduleOverrides" class="group-grid"></div>
         </section>
 
         <section class="admin-section">

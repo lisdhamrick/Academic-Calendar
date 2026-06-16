@@ -156,7 +156,7 @@ const CALENDAR_CONFIG = {
     earlyRelease: { label: "Early Release", className: "event-early-release" },
     firstLastDay: { label: "First / Last Day of School", className: "event-first-last" },
     proposedStaar: { label: "Proposed STAAR Testing", className: "event-staar" },
-    abSchedule: { label: "A Day / B Day Schedule", className: "event-ab-schedule" }
+    abSchedule: { label: "A/B/C Schedule", className: "event-ab-schedule" }
   },
   gradingMarkerTypes: {
     gp6: { label: "6-Week Grading Periods", className: "event-gp6" },
@@ -166,6 +166,7 @@ const CALENDAR_CONFIG = {
   events: [],
   gradingMarkers: [],
   abScheduleEnabled: false,
+  abScheduleOverrides: [],
   importantDates: DEFAULT_IMPORTANT_DATES.map((entry) => ({ ...entry }))
 };
 
@@ -221,11 +222,11 @@ const TRANSLATIONS = {
       earlyRelease: "Early Release",
       firstLastDay: "First / Last Day of School",
       proposedStaar: "Proposed STAAR Testing",
-      abSchedule: "A Day / B Day Schedule",
+      abSchedule: "A/B/C Schedule",
       gp6: "6-Week Grading Periods",
       gp9: "9-Week Grading Periods"
     },
-    abScheduleCompact: "A/B Schedule",
+    abScheduleCompact: "A/B/C Schedule",
     phraseTranslations: {
       "New Teacher Training": "New Teacher Training",
       "Professional Learning": "Professional Learning",
@@ -274,11 +275,11 @@ const TRANSLATIONS = {
       earlyRelease: "Salida temprana",
       firstLastDay: "Primer / último día de clases",
       proposedStaar: "Pruebas STAAR propuestas",
-      abSchedule: "Horario A/B",
+      abSchedule: "Horario A/B/C",
       gp6: "Períodos de calificación de 6 semanas",
       gp9: "Períodos de calificación de 9 semanas"
     },
-    abScheduleCompact: "Horario A/B",
+    abScheduleCompact: "Horario A/B/C",
     phraseTranslations: {
       "New Teacher Training": "Capacitación para maestros nuevos",
       "Professional Learning": "Aprendizaje profesional",
@@ -488,6 +489,23 @@ function sanitizeImportantDates(entries) {
     });
 }
 
+function sanitizeAbScheduleOverrides(entries) {
+  if (!Array.isArray(entries)) return [];
+  return entries
+    .filter((entry) => entry && typeof entry.date === "string" && entry.date)
+    .map((entry) => {
+      const label = ["A", "B", "C"].includes(entry.label) ? entry.label : "A";
+      const nextLabel = ["A", "B"].includes(entry.nextLabel) ? entry.nextLabel : "";
+      return {
+        date: entry.date,
+        label,
+        nextLabel,
+        enabled: entry.enabled !== false
+      };
+    })
+    .sort((left, right) => left.date.localeCompare(right.date));
+}
+
 function applyControlData(data) {
   if (!data || typeof data !== "object") return;
 
@@ -509,6 +527,10 @@ function applyControlData(data) {
 
   if (typeof data.abScheduleEnabled === "boolean") {
     CALENDAR_CONFIG.abScheduleEnabled = data.abScheduleEnabled;
+  }
+
+  if (Array.isArray(data.abScheduleOverrides)) {
+    CALENDAR_CONFIG.abScheduleOverrides = sanitizeAbScheduleOverrides(data.abScheduleOverrides);
   }
 
   if (Array.isArray(data.eventRules)) {
@@ -546,6 +568,7 @@ async function loadSharedControls() {
 
 function seedDefaultData() {
   CALENDAR_CONFIG.abScheduleEnabled = false;
+  CALENDAR_CONFIG.abScheduleOverrides = [];
   CALENDAR_CONFIG.eventRules = sanitizeEventRules(DEFAULT_EVENT_RULES);
   CALENDAR_CONFIG.events = expandEventRules(DEFAULT_EVENT_RULES);
   CALENDAR_CONFIG.gradingMarkers = DEFAULT_GRADING_MARKERS.map((marker) => ({ ...marker }));
@@ -715,6 +738,8 @@ function renderEventFilters() {
           <span class="filter-chip-ab-box filter-chip-ab-a">A</span>
           <span class="filter-chip-ab-divider" aria-hidden="true"></span>
           <span class="filter-chip-ab-box filter-chip-ab-b">B</span>
+          <span class="filter-chip-ab-divider" aria-hidden="true"></span>
+          <span class="filter-chip-ab-box filter-chip-ab-c">C</span>
         </span>
       `;
     }
@@ -1225,11 +1250,28 @@ function buildAbScheduleMap() {
   const endDate = lastKey
     ? parseISODate(lastKey)
     : new Date(CALENDAR_CONFIG.startYear, CALENDAR_CONFIG.startMonth + CALENDAR_CONFIG.monthsToRender, 0);
+  const overrideMap = new Map(
+    CALENDAR_CONFIG.abScheduleOverrides
+      .filter((entry) => entry.enabled !== false)
+      .map((entry) => [entry.date, entry])
+  );
   let nextLabel = "A";
 
   for (const cursor = new Date(startDate); cursor < endDate; cursor.setDate(cursor.getDate() + 1)) {
     const dateKey = createDateKey(cursor);
     if (!isStudentAttendanceDay(dateKey, eventLookup)) continue;
+
+    const override = overrideMap.get(dateKey);
+    if (override) {
+      schedule.set(dateKey, override.label);
+      if (override.nextLabel) {
+        nextLabel = override.nextLabel;
+      } else if (override.label === "A" || override.label === "B") {
+        nextLabel = override.label === "A" ? "B" : "A";
+      }
+      continue;
+    }
+
     schedule.set(dateKey, nextLabel);
     nextLabel = nextLabel === "A" ? "B" : "A";
   }
@@ -1246,7 +1288,8 @@ function resolveAccentColorForType(type) {
     earlyRelease: "--early-release",
     firstLastDay: "--first-last",
     proposedStaar: "--staar",
-    abSchedule: "--ab-b-day"
+    abSchedule: "--ab-b-day",
+    abScheduleC: "--ab-c-day"
   };
   const varName = varByType[type];
   if (varName) {
@@ -1648,14 +1691,24 @@ function renderCalendar() {
 
         const dominantEventType = getHighestPriorityEventType(dayEvents);
         const abDay = showAbSchedule ? abScheduleMap.get(cell.key) || "" : "";
-        if (abDay === "B" && dominantEventType === "earlyRelease") {
-          dayCell.classList.add("day-cell-ab-b");
-          dayCell.style.backgroundColor = resolveAccentColorForType("abSchedule");
-        } else if (FILLED_EVENT_TYPES.has(dominantEventType)) {
+        if (FILLED_EVENT_TYPES.has(dominantEventType)) {
           dayCell.style.backgroundColor = resolveAccentColorForType(dominantEventType);
-        } else if (abDay === "B") {
-          dayCell.classList.add("day-cell-ab-b");
-          dayCell.style.backgroundColor = resolveAccentColorForType("abSchedule");
+        }
+
+        if (abDay === "B" || abDay === "C") {
+          const scheduleColor =
+            abDay === "C"
+              ? resolveAccentColorForType("abScheduleC")
+              : resolveAccentColorForType("abSchedule");
+          const canScheduleOverride =
+            !dominantEventType ||
+            dominantEventType === "earlyRelease" ||
+            dominantEventType === "firstLastDay";
+
+          if (canScheduleOverride) {
+            dayCell.classList.add(abDay === "C" ? "day-cell-ab-c" : "day-cell-ab-b");
+            dayCell.style.backgroundColor = scheduleColor;
+          }
         }
         if (dayEvents.includes("proposedStaar") && dominantEventType === "proposedStaar") {
           staarCells.push({ rowIndex: weekIndex, columnIndex: dayIndex });
