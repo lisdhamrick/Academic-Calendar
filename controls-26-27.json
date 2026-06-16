@@ -3,7 +3,7 @@
   "startYear": 2026,
   "startMonth": 6,
   "monthsToRender": 12,
-  "abScheduleEnabled": false,
+  "abScheduleEnabled": true,
   "eventRules": [
     {
       "type": "newTeacherTraining",
@@ -218,8 +218,23 @@
     "gp9": [
       {
         "start": "2026-08-12",
+        "end": "2026-10-08",
+        "enabled": true
+      },
+      {
+        "start": "2026-10-14",
+        "end": "2026-12-18",
+        "enabled": true
+      },
+      {
+        "start": "2027-01-05",
+        "end": "2027-03-25",
+        "enabled": true
+      },
+      {
+        "start": "2027-03-30",
         "end": "2027-05-27",
-        "enabled": false
+        "enabled": true
       }
     ]
   },
@@ -281,6 +296,46 @@
     },
     {
       "type": "gp6",
+      "date": "2027-05-27",
+      "side": "end"
+    },
+    {
+      "type": "gp9",
+      "date": "2026-08-12",
+      "side": "start"
+    },
+    {
+      "type": "gp9",
+      "date": "2026-10-08",
+      "side": "end"
+    },
+    {
+      "type": "gp9",
+      "date": "2026-10-14",
+      "side": "start"
+    },
+    {
+      "type": "gp9",
+      "date": "2026-12-18",
+      "side": "end"
+    },
+    {
+      "type": "gp9",
+      "date": "2027-01-05",
+      "side": "start"
+    },
+    {
+      "type": "gp9",
+      "date": "2027-03-25",
+      "side": "end"
+    },
+    {
+      "type": "gp9",
+      "date": "2027-03-30",
+      "side": "start"
+    },
+    {
+      "type": "gp9",
       "date": "2027-05-27",
       "side": "end"
     }
