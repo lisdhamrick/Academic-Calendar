@@ -678,24 +678,36 @@ function renderEventFilters() {
 
   eventFilters.innerHTML = "";
 
-  const filters = [
-    ...Object.entries(CALENDAR_CONFIG.eventTypes)
-      .filter(([type]) => available.eventTypes.has(type))
-      .map(([type, config]) => ({
-        kind: "event",
-        type,
-        label: t.eventNames[type] || config.label,
-        className: config.className
-      })),
-    ...Object.entries(CALENDAR_CONFIG.gradingMarkerTypes)
-      .filter(([type]) => available.markerTypes.has(type))
-      .map(([type, config]) => ({
-        kind: "marker",
-        type,
-        label: t.eventNames[type] || config.label,
-        className: config.className
-      }))
-  ];
+  const eventFiltersList = Object.entries(CALENDAR_CONFIG.eventTypes)
+    .filter(([type]) => type !== "abSchedule" && available.eventTypes.has(type))
+    .map(([type, config]) => ({
+      kind: "event",
+      type,
+      label: t.eventNames[type] || config.label,
+      className: config.className
+    }));
+
+  const gradingFiltersList = Object.entries(CALENDAR_CONFIG.gradingMarkerTypes)
+    .filter(([type]) => available.markerTypes.has(type))
+    .map(([type, config]) => ({
+      kind: "marker",
+      type,
+      label: t.eventNames[type] || config.label,
+      className: config.className
+    }));
+
+  const abScheduleFilter = available.eventTypes.has("abSchedule")
+    ? [
+        {
+          kind: "event",
+          type: "abSchedule",
+          label: t.eventNames.abSchedule || CALENDAR_CONFIG.eventTypes.abSchedule.label,
+          className: CALENDAR_CONFIG.eventTypes.abSchedule.className
+        }
+      ]
+    : [];
+
+  const filters = [...eventFiltersList, ...gradingFiltersList, ...abScheduleFilter];
 
   eventFilters.hidden = filters.length === 0;
   if (filters.length === 0) return;
