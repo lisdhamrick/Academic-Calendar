@@ -19,7 +19,7 @@
   --ab-b-day: #efc4d2;
   --ab-c-day: #ffb050;
   --day-slot-h: clamp(1.3rem, 0.18vw + 1.22rem, 1.48rem);
-  --marker-depth: clamp(0.24rem, 0.08vw + 0.22rem, 0.38rem);
+  --marker-depth: clamp(0.5rem, 0.08vw + 0.22rem, 0.38rem);
   --marker-gap: 1px;
   --marker-stroke: 2px;
   --frame-stroke: 2px;
